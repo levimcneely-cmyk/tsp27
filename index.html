@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -891,7 +892,6 @@ const LEG_SPECS = [
 const SUPPORT = [{name:'Support 1', fullName:'Support 1', init:'S1'},{name:'Support 2', fullName:'Support 2', init:'S2'}];
 const ALL_PEOPLE = [...RUNNERS,...SUPPORT];
 
-function relayBase(b){return b*1.22;}
 function fatigueMult(hrs){
   if(hrs< 6) return 1.000;
   if(hrs<12) return 1.022;
@@ -940,15 +940,48 @@ function fmtClock(startHour,elapsedMins){
 }
 function dayLabel(e){return e<1440?'Day 1':e<2880?'Day 2':'Day 3';}
 
+// ---- Pacing model ----
+// Leg 1 for a runner: 80% of their road 10K pace (i.e. run at 80% of 10K speed — slower than race pace).
+// Leg 2: average of their leg-1 pace and that same 80%-of-10K baseline.
+// Leg 3+: fatigue-adjusted average of the legs they've actually run — 10K pace no longer factors in.
+// Time-of-day, short-leg bonus, and elevation still apply on top at every stage.
+function pace10kFor(name){
+  if(RUNNER_10K_PACE[name]!=null) return RUNNER_10K_PACE[name];
+  const r=RUNNERS.find(x=>x.name===name);
+  return r ? r.base10k : 480;
+}
+function estimateLegPace(runnerName, milesThisLeg, gainFtThisLeg, history, currentElapsedHrs, currentTod){
+  // history: chronological array of {pace, hrs} for this runner's own prior legs (actual or, pre-race, simulated)
+  const pace10k=pace10kFor(runnerName);
+  const baseline80=pace10k/0.80;
+  const k=history.length;
+  let base;
+  if(k===0){
+    base=baseline80;
+  } else if(k===1){
+    base=(history[0].pace+baseline80)/2;
+  } else {
+    const avgPace=history.reduce((a,h)=>a+h.pace,0)/history.length;
+    const avgHrs=history.reduce((a,h)=>a+h.hrs,0)/history.length;
+    const ratio=fatigueMult(currentElapsedHrs)/fatigueMult(avgHrs);
+    base=avgPace*ratio;
+  }
+  const elev=gradePenalty(gainFtThisLeg, milesThisLeg);
+  return base*todMult(currentTod)*shortLegBonus(milesThisLeg)+elev;
+}
+
+// Pre-race projected plan: walks the fixed rotation in order, building each
+// runner's own simulated pace history as it goes (no actual data exists yet).
 function buildSchedule(){
   const legs=[]; let elapsed=0;
+  const projHistory={};
   LEG_SPECS.forEach((spec, legIdx) => {
     const [startMile, mi, gainFt, runnerName] = spec;
     const r = RUNNERS.find(x=>x.name===runnerName);
     const hrs = elapsed/60;
     const tod = ((START_HOUR*60+elapsed)/60)%24;
-    const elev = gradePenalty(gainFt, mi);
-    const pace = relayBase(r.base10k)*fatigueMult(hrs)*todMult(tod)*shortLegBonus(mi)+elev;
+    const hist = projHistory[runnerName]||[];
+    const pace = estimateLegPace(runnerName, mi, gainFt, hist, hrs, tod);
     const dur = (pace*mi)/60;
     legs.push({
       legNum: legIdx+1, runner: r,
@@ -958,14 +991,21 @@ function buildSchedule(){
       pace, dur, elapsedStart: elapsed,
       tod, condition: todLabel(tod)
     });
+    if(!projHistory[runnerName]) projHistory[runnerName]=[];
+    projHistory[runnerName].push({pace, hrs});
     elapsed += dur;
   });
   return legs;
 }
 
-const SCHEDULE=buildSchedule();
-const TOTAL_LEGS=SCHEDULE.length;
-const totalProjMins=SCHEDULE.reduce((a,l)=>a+l.dur,0);
+let SCHEDULE=buildSchedule();
+let TOTAL_LEGS=SCHEDULE.length;
+let totalProjMins=SCHEDULE.reduce((a,l)=>a+l.dur,0);
+function rebuildSchedule(){
+  SCHEDULE=buildSchedule();
+  TOTAL_LEGS=SCHEDULE.length;
+  totalProjMins=SCHEDULE.reduce((a,l)=>a+l.dur,0);
+}
 
 // Per-runner total projected miles and gain
 function runnerTotalProjMiles(name){
@@ -982,9 +1022,11 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyY316px9irA8zVCA
 let actualLegs=[]; // each: {id, runner, miles, dur, gainFt}
 let overrides={}; // legNumber -> {runner, miles}
 let ROUTE_PROFILE=[]; // [{start,end,gainFt}, ...] half-mile increments, from RouteProfile tab
+let RUNNER_10K_PACE={}; // runnerName -> road 10K pace, sec/mile, from Runners tab
 let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
 const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
+const RUNNER_PACE_CACHE_KEY = 'tsp_runner_pace_v1';
 
 function setSyncStatus(state, text){
   const dot=document.getElementById('sync-dot');
@@ -1065,6 +1107,28 @@ function getEffectiveLeg(legIndex, startMile){
   return {legNumber, runner, miles, gainFt, pace, dur, startMile, condition:base.condition, overridden:!!(ov&&(ov.runner||ov.miles!=null))};
 }
 
+// ---- Runner 10K paces: fetched once, cached locally, refreshed quietly ----
+async function loadRunnerPaces(){
+  try{
+    const cached=localStorage.getItem(RUNNER_PACE_CACHE_KEY);
+    if(cached) RUNNER_10K_PACE=JSON.parse(cached);
+  }catch(e){/* ignore cache errors */}
+  if(!sheetConfigured()) return;
+  try{
+    const res=await fetch(SHEET_API_URL+'?action=runners',{method:'GET'});
+    if(!res.ok) return;
+    const data=await res.json();
+    if(data.runners && data.runners.length){
+      const map={};
+      data.runners.forEach(r=>{ if(r.pace10kSecPerMi!=null) map[r.runner]=r.pace10kSecPerMi; });
+      RUNNER_10K_PACE=map;
+      try{ localStorage.setItem(RUNNER_PACE_CACHE_KEY, JSON.stringify(RUNNER_10K_PACE)); }catch(e){/* ignore */}
+    }
+  }catch(err){
+    console.error('loadRunnerPaces error', err);
+  }
+}
+
 async function fetchLegs(silent){
   if(!sheetConfigured()){
     setSyncStatus('err','Not connected — add your Sheet URL in the code');
@@ -1116,7 +1180,11 @@ async function postToSheet(params){
   return res.json();
 }
 
-function manualSync(){ fetchLegs(false); }
+function manualSync(){
+  fetchLegs(false);
+  loadRouteProfile();
+  loadRunnerPaces().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+}
 
 async function clearLast(){
   if(!actualLegs.length) return;
@@ -1203,15 +1271,25 @@ function getRunnerActualPace(name){
   const mn=rl.reduce((a,l)=>a+l.dur,0);
   return mi?mn/mi*60:null;
 }
+// Chronological {pace, hrs} history of a runner's own completed legs, built
+// by walking the master race log (actualLegs) so we know how far into the
+// race each of their legs actually started.
+function getRunnerActualHistory(name){
+  let elapsed=0; const hist=[];
+  actualLegs.forEach(l=>{
+    if(l.runner===name){
+      const pace=l.dur/parseFloat(l.miles)*60;
+      hist.push({pace, hrs: elapsed/60});
+    }
+    elapsed+=l.dur;
+  });
+  return hist;
+}
 function projPaceForLeg(runnerName,mi,gainFt){
-  const actual=getRunnerActualPace(runnerName);
-  const elev=gradePenalty(gainFt||0,mi);
-  if(actual) return actual*shortLegBonus(mi)+elev;
-  const r=RUNNERS.find(x=>x.name===runnerName);
-  if(!r) return null;
-  const hrs=getActualElapsed()/60;
-  const tod=((START_HOUR*60+getActualElapsed())/60)%24;
-  return relayBase(r.base10k)*fatigueMult(hrs)*todMult(tod)*shortLegBonus(mi)+elev;
+  const hist=getRunnerActualHistory(runnerName);
+  const currentElapsedHrs=getActualElapsed()/60;
+  const currentTod=((START_HOUR*60+getActualElapsed())/60)%24;
+  return estimateLegPace(runnerName, mi, gainFt||0, hist, currentElapsedHrs, currentTod);
 }
 
 function goPage(id,btn){
@@ -1588,6 +1666,7 @@ function renderActual(){
 
 renderDash();
 loadRouteProfile().then(()=>renderPage(getActivePageId()));
+loadRunnerPaces().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 fetchLegs(false);
 startPolling();
 
