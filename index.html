@@ -974,15 +974,20 @@ function estimateLegPace(runnerName, milesThisLeg, gainFtThisLeg, history, curre
 
 // Pre-race projected plan: walks the fixed rotation in order, building each
 // runner's own simulated pace history as it goes (no actual data exists yet).
+// Elevation gain for every leg comes from ROUTE_PROFILE (the real, mile-by-mile
+// course data in the RouteProfile Sheet tab) once it's loaded; falls back to
+// the fixed LEG_SPECS figure until then, or if the route data is unavailable.
+let ROUTE_PROFILE=[]; // [{start,end,gainFt}, ...] half-mile increments, from RouteProfile tab
 function buildSchedule(){
   const legs=[]; let elapsed=0;
   const projHistory={};
   LEG_SPECS.forEach((spec, legIdx) => {
-    const [startMile, mi, gainFt, runnerName] = spec;
+    const [startMile, mi, specGainFt, runnerName] = spec;
     const r = RUNNERS.find(x=>x.name===runnerName);
     const hrs = elapsed/60;
     const tod = ((START_HOUR*60+elapsed)/60)%24;
     const hist = projHistory[runnerName]||[];
+    const gainFt = effectiveGain(startMile, mi, specGainFt, mi);
     const pace = estimateLegPace(runnerName, mi, gainFt, hist, hrs, tod);
     const dur = (pace*mi)/60;
     legs.push({
@@ -1023,7 +1028,6 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyY316px9irA8zVCA
 
 let actualLegs=[]; // each: {id, runner, miles, dur, gainFt}
 let overrides={}; // legNumber -> {runner, miles}
-let ROUTE_PROFILE=[]; // [{start,end,gainFt}, ...] half-mile increments, from RouteProfile tab
 let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
 const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
@@ -1215,7 +1219,7 @@ async function postToSheet(params){
 
 function manualSync(){
   fetchLegs(false);
-  loadRouteProfile();
+  loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
   loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 }
 
@@ -1698,7 +1702,7 @@ function renderActual(){
 }
 
 renderDash();
-loadRouteProfile().then(()=>renderPage(getActivePageId()));
+loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 fetchLegs(false);
 startPolling();
