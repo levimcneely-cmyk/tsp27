@@ -888,7 +888,7 @@ const LEG_SPECS = [
   [283.0,5.0,32,'DJ'],
   [288.0,2.9,9,'LM'],
 ];
-const SUPPORT = [{name:'Support 1',init:'S1'},{name:'Support 2',init:'S2'}];
+const SUPPORT = [{name:'Support 1', fullName:'Support 1', init:'S1'},{name:'Support 2', fullName:'Support 2', init:'S2'}];
 const ALL_PEOPLE = [...RUNNERS,...SUPPORT];
 
 function relayBase(b){return b*1.22;}
@@ -979,9 +979,12 @@ function runnerTotalProjGain(name){
 // Paste the Web App URL from your Apps Script deployment here:
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyY316px9irA8zVCAHm9NZQX4pJB18M6VmeF68Xm6HadrYze6saQfv17_H5cmmLbxRjIQ/exec';
 
-let actualLegs=[]; // each: {id, runner, miles, dur}
+let actualLegs=[]; // each: {id, runner, miles, dur, gainFt}
+let overrides={}; // legNumber -> {runner, miles}
+let ROUTE_PROFILE=[]; // [{start,end,gainFt}, ...] half-mile increments, from RouteProfile tab
 let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
+const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
 
 function setSyncStatus(state, text){
   const dot=document.getElementById('sync-dot');
@@ -995,6 +998,73 @@ function sheetConfigured(){
   return SHEET_API_URL && SHEET_API_URL.indexOf('PASTE_YOUR') === -1;
 }
 
+function applyOverrides(list){
+  overrides={};
+  (list||[]).forEach(o=>{ overrides[o.legNumber]={runner:o.runner||null, miles:(o.miles===null||o.miles===undefined||o.miles==='')?null:parseFloat(o.miles)}; });
+}
+
+// ---- Route profile: fetched once, cached locally, refreshed quietly ----
+async function loadRouteProfile(){
+  try{
+    const cached=localStorage.getItem(ROUTE_CACHE_KEY);
+    if(cached){ ROUTE_PROFILE=JSON.parse(cached); }
+  }catch(e){/* ignore cache errors */}
+  if(!sheetConfigured()) return;
+  try{
+    const res=await fetch(SHEET_API_URL+'?action=route',{method:'GET'});
+    if(!res.ok) return;
+    const data=await res.json();
+    if(data.route && data.route.length){
+      ROUTE_PROFILE=data.route;
+      try{ localStorage.setItem(ROUTE_CACHE_KEY, JSON.stringify(ROUTE_PROFILE)); }catch(e){/* ignore */}
+    }
+  }catch(err){
+    console.error('loadRouteProfile error', err);
+  }
+}
+
+// Sum elevation gain across an arbitrary mile range using the half-mile route
+// profile, prorating partial segments. Falls back to scaling the schedule's
+// fixed gain figure if no route profile has been loaded yet.
+function gainForRange(startMile, milesLen){
+  if(!ROUTE_PROFILE.length || !milesLen || milesLen<=0) return null;
+  const endMile=startMile+milesLen;
+  let gain=0;
+  for(const seg of ROUTE_PROFILE){
+    const overlapStart=Math.max(startMile, seg.start);
+    const overlapEnd=Math.min(endMile, seg.end);
+    if(overlapEnd>overlapStart){
+      const segLen=seg.end-seg.start;
+      const frac=segLen>0?(overlapEnd-overlapStart)/segLen:0;
+      gain+=seg.gainFt*frac;
+    }
+  }
+  return Math.round(gain);
+}
+function effectiveGain(startMile, milesLen, fallbackGainFt, fallbackMiles){
+  const routeGain=gainForRange(startMile, milesLen);
+  if(routeGain!==null) return routeGain;
+  if(fallbackMiles>0) return Math.round(fallbackGainFt*(milesLen/fallbackMiles));
+  return fallbackGainFt||0;
+}
+
+// Merge the default schedule with any live override for this leg, and
+// recompute gain/pace/duration against the real route profile + actual
+// mile marker rather than the fixed plan. startMile = where this leg
+// actually begins on the course (chained from actual progress so far).
+function getEffectiveLeg(legIndex, startMile){
+  if(legIndex<0 || legIndex>=TOTAL_LEGS) return null;
+  const base=SCHEDULE[legIndex];
+  const legNumber=legIndex+1;
+  const ov=overrides[legNumber];
+  const runner=(ov&&ov.runner)?(ALL_PEOPLE.find(p=>p.name===ov.runner)||base.runner):base.runner;
+  const miles=(ov&&ov.miles!=null&&!isNaN(ov.miles))?ov.miles:base.miles;
+  const gainFt=effectiveGain(startMile, miles, base.gainFt, base.miles);
+  const pace=projPaceForLeg(runner.name, miles, gainFt);
+  const dur=pace?(pace*miles)/60:null;
+  return {legNumber, runner, miles, gainFt, pace, dur, startMile, condition:base.condition, overridden:!!(ov&&(ov.runner||ov.miles!=null))};
+}
+
 async function fetchLegs(silent){
   if(!sheetConfigured()){
     setSyncStatus('err','Not connected — add your Sheet URL in the code');
@@ -1005,7 +1075,8 @@ async function fetchLegs(silent){
     const res=await fetch(SHEET_API_URL+'?action=list',{method:'GET'});
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data=await res.json();
-    actualLegs = (data.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur)}));
+    actualLegs = (data.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
+    applyOverrides(data.overrides);
     setSyncStatus('ok','Synced '+nowClock());
     // Don't yank the form out from under someone mid-entry on the Log page
     const activePage=document.querySelector('.page.active');
@@ -1047,6 +1118,73 @@ async function postToSheet(params){
 
 function manualSync(){ fetchLegs(false); }
 
+async function clearLast(){
+  if(!actualLegs.length) return;
+  if(!confirm('Remove the most recently logged leg for everyone?')) return;
+  const msg=document.getElementById('log-msg');
+  try{
+    const result=await postToSheet({action:'clear-last'});
+    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
+    applyOverrides(result.overrides);
+    setSyncStatus('ok','Synced '+nowClock());
+    renderLog();
+  }catch(err){
+    console.error('clearLast error', err);
+    setSyncStatus('err','Clear failed — try again');
+  }
+}
+
+async function clearAll(){
+  if(!actualLegs.length) return;
+  if(!confirm('Clear ALL logged legs for everyone? This can\'t be undone.')) return;
+  if(!confirm('Really sure? This wipes the whole race log.')) return;
+  try{
+    const result=await postToSheet({action:'clear'});
+    actualLegs=[];
+    applyOverrides(result.overrides);
+    setSyncStatus('ok','Synced '+nowClock());
+    renderLog();
+  }catch(err){
+    console.error('clearAll error', err);
+    setSyncStatus('err','Clear failed — try again');
+  }
+}
+
+// ---- Live overrides: change runner/distance for an upcoming leg without touching the default plan ----
+function toggleAdjust(key){
+  const el=document.getElementById('adjust-'+key);
+  if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+async function saveOverrideUI(key, legNumber){
+  const runnerEl=document.getElementById('adjust-'+key+'-runner');
+  const milesEl=document.getElementById('adjust-'+key+'-miles');
+  const runner=runnerEl?runnerEl.value:null;
+  const milesRaw=milesEl?milesEl.value:'';
+  const miles=milesRaw===''?null:parseFloat(milesRaw);
+  try{
+    const result=await postToSheet({action:'setOverride', legNumber, runner, miles});
+    applyOverrides(result.overrides);
+    setSyncStatus('ok','Synced '+nowClock());
+    renderPage(getActivePageId());
+  }catch(err){
+    console.error('saveOverrideUI error', err);
+    setSyncStatus('err','Save failed — try again');
+  }
+}
+
+async function resetOverrideUI(legNumber){
+  try{
+    const result=await postToSheet({action:'clearOverride', legNumber});
+    applyOverrides(result.overrides);
+    setSyncStatus('ok','Synced '+nowClock());
+    renderPage(getActivePageId());
+  }catch(err){
+    console.error('resetOverrideUI error', err);
+    setSyncStatus('err','Reset failed — try again');
+  }
+}
+
 function startPolling(){
   if(syncTimer) clearInterval(syncTimer);
   syncTimer=setInterval(()=>fetchLegs(true), SYNC_INTERVAL_MS);
@@ -1056,10 +1194,7 @@ function startPolling(){
 function getActualElapsed(){return actualLegs.reduce((a,l)=>a+l.dur,0);}
 function getActualMiles(){return actualLegs.reduce((a,l)=>a+parseFloat(l.miles),0);}
 function getActualGain(){
-  return actualLegs.reduce((a,l,i)=>{
-    const sched=SCHEDULE[i];
-    return a+(sched?sched.gainFt:0);
-  },0);
+  return actualLegs.reduce((a,l)=>a+(l.gainFt||0),0);
 }
 function getRunnerActualPace(name){
   const rl=actualLegs.filter(l=>l.runner===name);
@@ -1095,17 +1230,13 @@ function renderDash(){
   const done=actualLegs.length;
   const actMiles=getActualMiles();
   const actElapsed=getActualElapsed();
-  const projRemain=SCHEDULE.slice(done).reduce((a,l)=>a+l.dur,0);
+  const nextEff=getEffectiveLeg(done, actMiles);
+  const onDeckEff=nextEff?getEffectiveLeg(done+1, actMiles+nextEff.miles):null;
+  const projRemain=SCHEDULE.slice(done+2).reduce((a,l)=>a+l.dur,0) + (nextEff?nextEff.dur||0:0) + (onDeckEff?onDeckEff.dur||0:0);
   const projFinish=actElapsed+projRemain;
   const progress=Math.min(100,Math.round(actMiles/TOTAL_MILES*100));
-  const actGain=SCHEDULE.slice(0,done).reduce((a,l)=>a+l.gainFt,0);
+  const actGain=getActualGain();
   const elevProgress=Math.min(100,Math.round(actGain/TOTAL_GAIN_FT*100));
-  const nextSched=done<TOTAL_LEGS?SCHEDULE[done]:null;
-  const onDeck=done+1<TOTAL_LEGS?SCHEDULE[done+1]:null;
-  const nextPace=nextSched?projPaceForLeg(nextSched.runner.name,nextSched.miles,nextSched.gainFt):null;
-  const nextDur=nextPace?(nextPace*nextSched.miles)/60:null;
-  const onDeckPace=onDeck?projPaceForLeg(onDeck.runner.name,onDeck.miles,onDeck.gainFt):null;
-  const onDeckDur=onDeckPace?(onDeckPace*onDeck.miles)/60:null;
   const lastLeg=done?actualLegs[done-1]:null;
 
   let html=`
@@ -1131,31 +1262,61 @@ function renderDash(){
     </div>
   </div>`;
 
-  if(nextSched){
-    const nColor=RUNNER_COLORS[nextSched.runner.name]||'var(--tape)';
+  if(nextEff){
+    const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--tape)';
     html+=`<div class="now-card" style="border-color:${nColor}">
-      <div class="now-runner-name" style="color:${nColor}">${nextSched.runner.fullName}</div>
-      <div class="now-leg-info">LEG ${done+1} &nbsp;&bull;&nbsp; MILES ${nextSched.startMile} &ndash; ${Math.round(nextSched.startMile+nextSched.miles)} &nbsp;&bull;&nbsp; ${nextSched.miles} MI &nbsp;&bull;&nbsp; ▲${nextSched.gainFt}ft &nbsp;&bull;&nbsp; ${nextSched.condition.toUpperCase()}</div>
+      <div class="now-runner-name" style="color:${nColor}">${nextEff.runner.fullName}${nextEff.overridden?' <span style="font-size:11px;letter-spacing:.1em;color:var(--tape);opacity:.7;font-family:\'Space Mono\',monospace">· ADJUSTED</span>':''}</div>
+      <div class="now-leg-info">LEG ${done+1} &nbsp;&bull;&nbsp; MILE ${Math.round(nextEff.startMile*10)/10} &ndash; ${Math.round((nextEff.startMile+nextEff.miles)*10)/10} &nbsp;&bull;&nbsp; ${Math.round(nextEff.miles*10)/10} MI &nbsp;&bull;&nbsp; ▲${nextEff.gainFt}ft &nbsp;&bull;&nbsp; ${nextEff.condition.toUpperCase()}</div>
       <div class="now-stats">
-        <div><div class="now-stat-label">Proj Pace</div><div class="now-stat-val">${fmtPace(nextPace)}<span style="font-size:13px;opacity:.5">/mi</span></div></div>
-        <div><div class="now-stat-label">Proj Duration</div><div class="now-stat-val">${fmtDur(nextDur)}</div></div>
-        <div><div class="now-stat-label">Est Handoff</div><div class="now-stat-val" style="font-size:22px">${nextDur?fmtClock(START_HOUR,actElapsed+nextDur):'--'}</div></div>
+        <div><div class="now-stat-label">Proj Pace</div><div class="now-stat-val">${fmtPace(nextEff.pace)}<span style="font-size:13px;opacity:.5">/mi</span></div></div>
+        <div><div class="now-stat-label">Proj Duration</div><div class="now-stat-val">${fmtDur(nextEff.dur)}</div></div>
+        <div><div class="now-stat-label">Est Handoff</div><div class="now-stat-val" style="font-size:22px">${nextEff.dur?fmtClock(START_HOUR,actElapsed+nextEff.dur):'--'}</div></div>
+      </div>
+      <button class="btn-ghost" style="margin-top:14px" onclick="toggleAdjust('next')">✎ ADJUST RUNNER / DISTANCE</button>
+      <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+          <div><div class="form-label">Runner</div>
+            <select id="adjust-next-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
+          </div>
+          <div><div class="form-label">Miles</div>
+            <input type="number" id="adjust-next-miles" value="${nextEff.miles}" min="0.1" max="30" step="0.1">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost" style="border-color:var(--tape);color:var(--tape)" onclick="saveOverrideUI('next',${done+1})">SAVE</button>
+          ${nextEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+1})">RESET TO PLAN</button>`:''}
+        </div>
       </div>
     </div>`;
   } else {
     html+=`<div class="now-card" style="text-align:center;padding:28px"><div class="now-runner-name">FINISH</div><div class="now-leg-info">LAS VEGAS SIGN REACHED</div></div>`;
   }
 
-  if(onDeck){
-    const odColor=RUNNER_COLORS[onDeck.runner.name]||'var(--tape)';
-    html+=`<div class="deck-card" style="border-color:${odColor}40">
+  if(onDeckEff){
+    const odColor=RUNNER_COLORS[onDeckEff.runner.name]||'var(--tape)';
+    html+=`<div class="deck-card" style="border-color:${odColor}40;flex-wrap:wrap;gap:10px">
       <div>
-        <div class="deck-label" style="color:${odColor}">On Deck — Leg ${done+2}</div>
-        <div class="deck-name" style="color:${odColor}">${onDeck.runner.fullName}</div>
+        <div class="deck-label" style="color:${odColor}">On Deck — Leg ${done+2}${onDeckEff.overridden?' · ADJUSTED':''}</div>
+        <div class="deck-name" style="color:${odColor}">${onDeckEff.runner.fullName}</div>
       </div>
       <div class="deck-info">
-        <strong>${fmtPace(onDeckPace)}/mi</strong>
-        ${onDeck.miles} mi &bull; ${fmtDur(onDeckDur)} est
+        <strong>${fmtPace(onDeckEff.pace)}/mi</strong>
+        ${Math.round(onDeckEff.miles*10)/10} mi &bull; ${fmtDur(onDeckEff.dur)} est
+      </div>
+      <button class="btn-ghost" style="width:100%" onclick="toggleAdjust('deck')">✎ ADJUST</button>
+      <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08)">
+        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+          <div><div class="form-label">Runner</div>
+            <select id="adjust-deck-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
+          </div>
+          <div><div class="form-label">Miles</div>
+            <input type="number" id="adjust-deck-miles" value="${onDeckEff.miles}" min="0.1" max="30" step="0.1">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost" style="border-color:var(--tape);color:var(--tape)" onclick="saveOverrideUI('deck',${done+2})">SAVE</button>
+          ${onDeckEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+2})">RESET TO PLAN</button>`:''}
+        </div>
       </div>
     </div>`;
   }
@@ -1167,9 +1328,9 @@ function renderDash(){
       const actMi=rl.reduce((a,l)=>a+parseFloat(l.miles),0);
       const projTotalMi=runnerTotalProjMiles(r.name);
       const projTotalGain=runnerTotalProjGain(r.name);
-      const actGainR=SCHEDULE.slice(0,done).filter(l=>l.runner.name===r.name).reduce((a,l)=>a+l.gainFt,0);
+      const actGainR=rl.reduce((a,l)=>a+(l.gainFt||0),0);
       const ap=getRunnerActualPace(r.name);
-      const isNext=nextSched&&nextSched.runner.name===r.name;
+      const isNext=nextEff&&nextEff.runner.name===r.name;
       const rColor=RUNNER_COLORS[r.name]||'var(--tape)';
       return `<div class="runner-cell${isNext?' is-next':''}" style="${isNext?'border-color:'+rColor:''}">
         <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${r.init}</div><div class="runner-name-cell" style="color:${rColor}">${r.fullName}</div></div>
@@ -1245,14 +1406,15 @@ function renderProjected(){
 function renderLog(){
   const el=document.getElementById('page-log');
   const done=actualLegs.length;
-  const nextSched=done<TOTAL_LEGS?SCHEDULE[done]:null;
-  const defRunner=nextSched?nextSched.runner.name:RUNNERS[0].name;
-  const defMiles=nextSched?nextSched.miles:5;
+  const actMiles=getActualMiles();
+  const nextEff=getEffectiveLeg(done, actMiles);
+  const defRunner=nextEff?nextEff.runner.name:RUNNERS[0].name;
+  const defMiles=nextEff?nextEff.miles:5;
 
   let html=`<div class="section-head">Log Completed Leg</div>`;
 
-  if(nextSched){
-    html+=`<div class="hint-box">Next projected: <strong>${nextSched.runner.fullName}</strong> &bull; ${nextSched.miles} mi &bull; <strong>${fmtPace(nextSched.pace)}/mi</strong> projected &bull; Leg ${done+1}</div>`;
+  if(nextEff){
+    html+=`<div class="hint-box">Next projected: <strong>${nextEff.runner.fullName}</strong> &bull; ${Math.round(nextEff.miles*10)/10} mi &bull; <strong>${fmtPace(nextEff.pace)}/mi</strong> projected &bull; Leg ${done+1}${nextEff.overridden?' &bull; <span style="color:var(--tape)">ADJUSTED</span>':''}</div>`;
   }
 
   html+=`<div class="form-card">
@@ -1274,7 +1436,13 @@ function renderLog(){
   </div>`;
 
   if(done>0){
-    html+=`<div class="section-head">Recent Legs</div>
+    html+=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div class="section-head">Recent Legs</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn-ghost" onclick="clearLast()">CLEAR LAST</button>
+        <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(232,64,64,0.4);color:var(--red)">CLEAR ALL</button>
+      </div>
+    </div>
     <div class="tbl-wrap"><div class="tbl-scroll" style="max-height:280px"><table>
       <thead><tr><th style="width:28px">#</th><th>Runner</th><th style="width:50px">Miles</th><th style="width:60px">Time</th><th style="width:72px">Pace</th><th style="width:64px"></th></tr></thead>
       <tbody>${actualLegs.slice().reverse().slice(0,10).map((l,ri)=>{
@@ -1316,9 +1484,11 @@ async function submitLeg(){
   }
   if(btn) btn.disabled=true;
   msg.textContent=' saving…'; msg.style.color='var(--white-dim)';
+  const gainFt=effectiveGain(getActualMiles(), miles, 0, miles) || 0;
   try{
-    const result=await postToSheet({action:'add', runner, miles, dur});
-    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur)}));
+    const result=await postToSheet({action:'add', runner, miles, dur, gainFt});
+    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
+    applyOverrides(result.overrides);
     setSyncStatus('ok','Synced '+nowClock());
     msg.textContent=' ✓ logged'; msg.style.color='var(--green)';
     document.getElementById('log-dur').value='';
@@ -1337,7 +1507,8 @@ async function deleteLeg(idx){
   if(!confirm('Remove this leg for everyone?')) return;
   try{
     const result=await postToSheet({action:'delete', id: leg.id});
-    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur)}));
+    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
+    applyOverrides(result.overrides);
     setSyncStatus('ok','Synced '+nowClock());
     renderLog();
   }catch(err){
@@ -1416,6 +1587,7 @@ function renderActual(){
 }
 
 renderDash();
+loadRouteProfile().then(()=>renderPage(getActivePageId()));
 fetchLegs(false);
 startPolling();
 
