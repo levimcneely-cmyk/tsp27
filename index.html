@@ -745,11 +745,11 @@
     </div>
     <div class="header-meta">
       <div class="header-meta-label">START</div>
-      <div class="header-meta-val">4:00AM</div>
+      <div class="header-meta-val" id="header-start">4:00AM</div>
     </div>
     <div class="header-meta">
       <div class="header-meta-label">DISTANCE</div>
-      <div class="header-meta-val">290.9 MI</div>
+      <div class="header-meta-val" id="header-distance">290.9 MI</div>
     </div>
     <div class="header-meta">
       <div class="header-meta-label">RUNNERS</div>
@@ -781,12 +781,19 @@
 <div id="page-actual" class="page"></div>
 
 <script>
-const START_HOUR = 4;
+// Race-level settings — defaults below, overwritten once the Settings tab loads.
+let START_HOUR = 4;
 // Route: TSP v2.0 — Santa Monica → Las Vegas
 // KML-derived: 290.9 mi · 23,657 ft gain · 21,499 ft loss
 // Strict rotation: EK → DC → BA → DJ → LM → JH (every 6 legs, no reordering)
-const TOTAL_MILES = 290.9;
-const TOTAL_GAIN_FT = 23657;
+let TOTAL_MILES = 290.9;
+// Elevation total is derived from ROUTE_PROFILE once it loads (falls back
+// to this fixed figure until then, or if the route data is unavailable).
+const TOTAL_GAIN_FT_FALLBACK = 23657;
+function getTotalGainFt(){
+  if(ROUTE_PROFILE.length) return Math.round(ROUTE_PROFILE.reduce((a,s)=>a+s.gainFt,0));
+  return TOTAL_GAIN_FT_FALLBACK;
+}
 
 // Hardcoded fallback roster — used until the Sheet's Runners tab loads (or if
 // it's unreachable). Once loaded, the Sheet's data overwrites these in place.
@@ -1032,6 +1039,7 @@ let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
 const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
 const ROSTER_CACHE_KEY = 'tsp_roster_v1';
+const SETTINGS_CACHE_KEY = 'tsp_settings_v1';
 
 function setSyncStatus(state, text){
   const dot=document.getElementById('sync-dot');
@@ -1166,6 +1174,38 @@ async function loadRoster(){
   }
 }
 
+// ---- Race-level settings (start hour, total miles): fetched once, cached locally ----
+function applySettings(s){
+  if(!s) return;
+  if(s.startHour!=null && !isNaN(s.startHour)) START_HOUR=s.startHour;
+  if(s.totalMiles!=null && !isNaN(s.totalMiles)) TOTAL_MILES=s.totalMiles;
+  updateHeaderMeta();
+}
+function updateHeaderMeta(){
+  const startEl=document.getElementById('header-start');
+  const distEl=document.getElementById('header-distance');
+  if(startEl) startEl.textContent=fmtClock(START_HOUR,0).toUpperCase();
+  if(distEl) distEl.textContent=(Math.round(TOTAL_MILES*10)/10)+' MI';
+}
+async function loadSettings(){
+  try{
+    const cached=localStorage.getItem(SETTINGS_CACHE_KEY);
+    if(cached) applySettings(JSON.parse(cached));
+  }catch(e){/* ignore cache errors */}
+  if(!sheetConfigured()) return;
+  try{
+    const res=await fetch(SHEET_API_URL+'?action=settings',{method:'GET'});
+    if(!res.ok) return;
+    const data=await res.json();
+    if(data.settings){
+      applySettings(data.settings);
+      try{ localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(data.settings)); }catch(e){/* ignore */}
+    }
+  }catch(err){
+    console.error('loadSettings error', err);
+  }
+}
+
 async function fetchLegs(silent){
   if(!sheetConfigured()){
     setSyncStatus('err','Not connected — add your Sheet URL in the code');
@@ -1221,6 +1261,7 @@ function manualSync(){
   fetchLegs(false);
   loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
   loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+  loadSettings().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 }
 
 async function clearLast(){
@@ -1351,7 +1392,7 @@ function renderDash(){
   const projFinish=actElapsed+projRemain;
   const progress=Math.min(100,Math.round(actMiles/TOTAL_MILES*100));
   const actGain=getActualGain();
-  const elevProgress=Math.min(100,Math.round(actGain/TOTAL_GAIN_FT*100));
+  const elevProgress=Math.min(100,Math.round(actGain/getTotalGainFt()*100));
   const lastLeg=done?actualLegs[done-1]:null;
 
   let html=`
@@ -1370,7 +1411,7 @@ function renderDash(){
     <div class="progress-meta">
       <span style="color:var(--tape);opacity:.7">▲ ELEVATION</span>
       <span>${elevProgress}% — ${actGain.toLocaleString()} ft climbed</span>
-      <span style="opacity:.5">23,657 ft total</span>
+      <span style="opacity:.5">${getTotalGainFt().toLocaleString()} ft total</span>
     </div>
     <div class="progress-track" style="height:5px;border-color:rgba(245,230,66,0.2)">
       <div class="progress-fill" style="width:${elevProgress}%;background:linear-gradient(90deg,var(--tape-dark),var(--tape))"></div>
@@ -1501,7 +1542,7 @@ function renderProjected(){
     <span class="tag tag-night">NIGHT — faster</span>
     <span class="tag tag-heat">HEAT — slower</span>
     <span class="tag tag-dawn">DAWN</span>
-    <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(240,237,228,.4);align-self:center">Short legs run faster · Elevation penalty baked in (23,657ft gain)</span>
+    <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(240,237,228,.4);align-self:center">Short legs run faster · Elevation penalty baked in (${getTotalGainFt().toLocaleString()}ft gain)</span>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     ${RUNNERS.map(r=>`<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 9px;border:1px solid ${RUNNER_COLORS[r.name]};color:${RUNNER_COLORS[r.name]};background:${RUNNER_COLORS[r.name]}18">${r.name}</span>`).join('')}
@@ -1704,6 +1745,7 @@ function renderActual(){
 renderDash();
 loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+loadSettings().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 fetchLegs(false);
 startPolling();
 
