@@ -788,24 +788,30 @@ const START_HOUR = 4;
 const TOTAL_MILES = 290.9;
 const TOTAL_GAIN_FT = 23657;
 
-const RUNNERS = [
-  {name:'EK', fullName:'Eric',   init:'EK', base10k:400},
-  {name:'DC', fullName:'Dayne',  init:'DC', base10k:480},
-  {name:'BA', fullName:'Ben',    init:'BA', base10k:450},
-  {name:'DJ', fullName:'DJ',     init:'DJ', base10k:450},
-  {name:'LM', fullName:'Levi',   init:'LM', base10k:480},
-  {name:'JH', fullName:'Jeremy', init:'JH', base10k:500},
+// Hardcoded fallback roster — used until the Sheet's Runners tab loads (or if
+// it's unreachable). Once loaded, the Sheet's data overwrites these in place.
+// NOTE: the 6 codes below (EK, DC, BA, DJ, LM, JH) are wired into the fixed
+// leg rotation in LEG_SPECS further down. Who/what is attached to a code
+// (fullName, init, color, pace) is fully editable from the Sheet — the codes
+// themselves aren't, since the whole rotation plan is built around them.
+const DEFAULT_RUNNERS = [
+  {name:'EK', fullName:'Eric',   init:'EK', base10k:400, color:'#f5e642'},
+  {name:'DC', fullName:'Dayne',  init:'DC', base10k:480, color:'#7eb8f7'},
+  {name:'BA', fullName:'Ben',    init:'BA', base10k:450, color:'#f7a05a'},
+  {name:'DJ', fullName:'DJ',     init:'DJ', base10k:450, color:'#a8e06a'},
+  {name:'LM', fullName:'Levi',   init:'LM', base10k:480, color:'#c97ff5'},
+  {name:'JH', fullName:'Jeremy', init:'JH', base10k:500, color:'#f76f6f'},
+];
+const DEFAULT_SUPPORT = [
+  {name:'Support 1', fullName:'Support 1', init:'S1', color:'#888888'},
+  {name:'Support 2', fullName:'Support 2', init:'S2', color:'#888888'},
 ];
 
-// Per-runner accent colors
-const RUNNER_COLORS = {
-  'EK': '#f5e642',
-  'DC': '#7eb8f7',
-  'BA': '#f7a05a',
-  'DJ': '#a8e06a',
-  'LM': '#c97ff5',
-  'JH': '#f76f6f',
-};
+let RUNNERS = DEFAULT_RUNNERS.map(r=>({...r}));
+let SUPPORT = DEFAULT_SUPPORT.map(r=>({...r}));
+let RUNNER_COLORS = {};
+RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
+let ALL_PEOPLE = [...RUNNERS, ...SUPPORT];
 
 // KML-derived leg specs: [startMile, legMiles, gainFt, runnerName]
 // Pure EK→DC→BA→DJ→LM→JH rotation. No back-to-backs. DC/LM always 3 legs apart.
@@ -888,8 +894,6 @@ const LEG_SPECS = [
   [283.0,5.0,32,'DJ'],
   [288.0,2.9,9,'LM'],
 ];
-const SUPPORT = [{name:'Support 1', fullName:'Support 1', init:'S1'},{name:'Support 2', fullName:'Support 2', init:'S2'}];
-const ALL_PEOPLE = [...RUNNERS,...SUPPORT];
 
 function fatigueMult(hrs){
   if(hrs< 6) return 1.000;
@@ -945,9 +949,8 @@ function dayLabel(e){return e<1440?'Day 1':e<2880?'Day 2':'Day 3';}
 // Leg 3+: fatigue-adjusted average of the legs they've actually run — 10K pace no longer factors in.
 // Time-of-day, short-leg bonus, and elevation still apply on top at every stage.
 function pace10kFor(name){
-  if(RUNNER_10K_PACE[name]!=null) return RUNNER_10K_PACE[name];
-  const r=RUNNERS.find(x=>x.name===name);
-  return r ? r.base10k : 480;
+  const r=ALL_PEOPLE.find(x=>x.name===name);
+  return r && r.base10k ? r.base10k : 480;
 }
 function estimateLegPace(runnerName, milesThisLeg, gainFtThisLeg, history, currentElapsedHrs, currentTod){
   // history: chronological array of {pace, hrs} for this runner's own prior legs (actual or, pre-race, simulated)
@@ -1021,11 +1024,10 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyY316px9irA8zVCA
 let actualLegs=[]; // each: {id, runner, miles, dur, gainFt}
 let overrides={}; // legNumber -> {runner, miles}
 let ROUTE_PROFILE=[]; // [{start,end,gainFt}, ...] half-mile increments, from RouteProfile tab
-let RUNNER_10K_PACE={}; // runnerName -> road 10K pace, sec/mile, from Runners tab
 let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
 const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
-const RUNNER_PACE_CACHE_KEY = 'tsp_runner_pace_v1';
+const ROSTER_CACHE_KEY = 'tsp_roster_v1';
 
 function setSyncStatus(state, text){
   const dot=document.getElementById('sync-dot');
@@ -1106,11 +1108,45 @@ function getEffectiveLeg(legIndex, startMile){
   return {legNumber, runner, miles, gainFt, pace, dur, startMile, condition:base.condition, overridden:!!(ov&&(ov.runner||ov.miles!=null))};
 }
 
-// ---- Runner 10K paces: fetched once, cached locally, refreshed quietly ----
-async function loadRunnerPaces(){
+// ---- Full roster (name, initials, color, pace, support flag): fetched once,
+// cached locally, refreshed quietly. Rebuilds RUNNERS/SUPPORT/RUNNER_COLORS/
+// ALL_PEOPLE from whatever comes back, falling back to the hardcoded
+// defaults for anything the Sheet doesn't have.
+function applyRoster(rows){
+  if(!rows || !rows.length) return;
+  const byCode={};
+  rows.forEach(r=>{ byCode[r.code]=r; });
+
+  RUNNERS = DEFAULT_RUNNERS.map(def=>{
+    const s=byCode[def.name];
+    if(!s) return {...def};
+    return {
+      name:def.name, // rotation code never changes
+      fullName:s.fullName||def.fullName,
+      init:s.init||def.init,
+      color:s.color||def.color,
+      base10k:(s.pace10kSecPerMi!=null)?s.pace10kSecPerMi:def.base10k
+    };
+  });
+
+  // Anything in the sheet flagged isSupport, or that doesn't match a rotation
+  // code at all, becomes a selectable person (Log Leg dropdown etc.) without
+  // being part of the fixed rotation/schedule.
+  const rotationCodes=DEFAULT_RUNNERS.map(r=>r.name);
+  const extras=rows.filter(r=>r.isSupport || !rotationCodes.includes(r.code));
+  SUPPORT = extras.length ? extras.map(s=>({
+    name:s.code, fullName:s.fullName||s.code, init:s.init||s.code, color:s.color||'#888888'
+  })) : DEFAULT_SUPPORT.map(r=>({...r}));
+
+  RUNNER_COLORS={};
+  RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
+  ALL_PEOPLE=[...RUNNERS, ...SUPPORT];
+}
+
+async function loadRoster(){
   try{
-    const cached=localStorage.getItem(RUNNER_PACE_CACHE_KEY);
-    if(cached) RUNNER_10K_PACE=JSON.parse(cached);
+    const cached=localStorage.getItem(ROSTER_CACHE_KEY);
+    if(cached) applyRoster(JSON.parse(cached));
   }catch(e){/* ignore cache errors */}
   if(!sheetConfigured()) return;
   try{
@@ -1118,13 +1154,11 @@ async function loadRunnerPaces(){
     if(!res.ok) return;
     const data=await res.json();
     if(data.runners && data.runners.length){
-      const map={};
-      data.runners.forEach(r=>{ if(r.pace10kSecPerMi!=null) map[r.runner]=r.pace10kSecPerMi; });
-      RUNNER_10K_PACE=map;
-      try{ localStorage.setItem(RUNNER_PACE_CACHE_KEY, JSON.stringify(RUNNER_10K_PACE)); }catch(e){/* ignore */}
+      applyRoster(data.runners);
+      try{ localStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(data.runners)); }catch(e){/* ignore */}
     }
   }catch(err){
-    console.error('loadRunnerPaces error', err);
+    console.error('loadRoster error', err);
   }
 }
 
@@ -1182,7 +1216,7 @@ async function postToSheet(params){
 function manualSync(){
   fetchLegs(false);
   loadRouteProfile();
-  loadRunnerPaces().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+  loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 }
 
 async function clearLast(){
@@ -1665,7 +1699,7 @@ function renderActual(){
 
 renderDash();
 loadRouteProfile().then(()=>renderPage(getActivePageId()));
-loadRunnerPaces().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 fetchLegs(false);
 startPolling();
 
