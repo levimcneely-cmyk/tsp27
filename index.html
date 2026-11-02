@@ -733,6 +733,133 @@
     cursor: pointer;
   }
   .sync-status button:active { border-color: var(--tape); color: var(--tape); }
+
+  /* ============ LOGISTICS ============ */
+  @media (max-width: 600px) {
+    nav button { font-size: 9px; letter-spacing: .05em; padding: 12px 2px 10px; }
+  }
+  .countdown {
+    border: 3px solid var(--tape);
+    background: var(--black2);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .countdown-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: .16em;
+    color: var(--tape); opacity: .8;
+    margin-bottom: 6px;
+  }
+  .countdown-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 54px; letter-spacing: .04em; line-height: 1;
+    color: var(--white);
+  }
+  .countdown-val span { font-size: 22px; color: var(--tape); margin: 0 10px 0 2px; }
+  .countdown-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: .1em;
+    color: var(--white-dim); margin-top: 8px;
+  }
+  .logi-toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 14px;
+  }
+  .chip {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; letter-spacing: .08em;
+    padding: 7px 11px; min-height: 34px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white-dim);
+    cursor: pointer;
+  }
+  .chip.on { border-color: var(--tape); color: var(--black); background: var(--tape); }
+  .logi-toolbar select { width: auto; min-height: 34px; font-size: 12px; padding: 6px 30px 6px 10px; }
+  .logi-day {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px; letter-spacing: .16em;
+    color: var(--white-dim);
+    margin: 18px 0 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logi-day::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+  .logi-card {
+    background: var(--black2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 4px solid var(--gray);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .logi-card.is-next { border-color: var(--tape-border); border-left-color: var(--tape); }
+  .logi-card.is-past { opacity: .45; }
+  .logi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .logi-type {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: .12em;
+    margin-bottom: 4px;
+  }
+  .logi-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px; letter-spacing: .03em; line-height: 1.05;
+    color: var(--white);
+  }
+  .logi-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--white);
+    text-align: right; white-space: nowrap;
+  }
+  .logi-time small { display: block; font-size: 9px; color: var(--white-dim); letter-spacing: .08em; }
+  .logi-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--white-dim);
+    line-height: 1.7; margin-top: 8px;
+    word-break: break-word;
+  }
+  .logi-meta b { color: var(--tape); font-weight: 400; letter-spacing: .1em; font-size: 9px; margin-right: 6px; }
+  .logi-notes {
+    font-size: 13px; color: var(--white-dim);
+    margin-top: 8px; white-space: pre-wrap; line-height: 1.5;
+  }
+  .who-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .who-chip {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: .06em;
+    padding: 2px 7px; border: 1px solid;
+  }
+  .logi-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .logi-actions .btn-ghost { min-height: 32px; padding: 6px 10px; font-size: 9px; }
+  .logi-actions .btn-ghost.accent { border-color: var(--tape-border); color: var(--tape); }
+  .logi-actions .btn-ghost.accent:hover { border-color: var(--tape); color: var(--tape); }
+  .conf-btn {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    background: var(--tape-dim); border: 1px dashed var(--tape-border);
+    color: var(--white); padding: 1px 8px; cursor: pointer;
+  }
+  .logi-form textarea {
+    width: 100%; min-height: 80px; resize: vertical;
+    background: var(--black); border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 16px;
+    padding: 10px 12px; outline: none; border-radius: 0;
+  }
+  .logi-form textarea:focus { border-color: var(--tape); }
+  .logi-form input[type="datetime-local"] { min-width: 0; }
+  .logi-form .form-row.two { grid-template-columns: 1fr 1fr; }
+  .logi-form .form-row.one { grid-template-columns: 1fr; }
+  .who-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+  .who-pick label {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 8px 10px; cursor: pointer; user-select: none;
+    color: var(--white-dim);
+  }
+  .who-pick input { display: none; }
+  .who-pick label.on { border-color: var(--tape); color: var(--tape); background: var(--tape-dim); }
+  @media (max-width: 600px) { .logi-form .form-row.two { grid-template-columns: 1fr; } .countdown-val { font-size: 42px; } }
+  #logi-msg { font-family: 'Space Mono', monospace; font-size: 11px; margin-left: 12px; }
+  .past-toggle { width: 100%; margin-top: 14px; }
 </style>
 </head>
 <body>
@@ -769,13 +896,15 @@
 </div>
 
 <nav id="main-nav">
-  <button class="active" onclick="goPage('dash',this)">DASHBOARD</button>
-  <button onclick="goPage('projected',this)">PROJECTED</button>
-  <button onclick="goPage('log',this)">LOG LEG</button>
-  <button onclick="goPage('actual',this)">ACTUAL</button>
+  <button data-page="logistics" onclick="goPage('logistics',this,true)">LOGISTICS</button>
+  <button data-page="dash" onclick="goPage('dash',this,true)">DASHBOARD</button>
+  <button data-page="projected" onclick="goPage('projected',this,true)">PROJECTED</button>
+  <button data-page="log" onclick="goPage('log',this,true)">LOG LEG</button>
+  <button data-page="actual" onclick="goPage('actual',this,true)">ACTUAL</button>
 </nav>
 
-<div id="page-dash" class="page active"></div>
+<div id="page-logistics" class="page"></div>
+<div id="page-dash" class="page"></div>
 <div id="page-projected" class="page"></div>
 <div id="page-log" class="page"></div>
 <div id="page-actual" class="page"></div>
@@ -1184,7 +1313,9 @@ function applySettings(s){
 function updateHeaderMeta(){
   const startEl=document.getElementById('header-start');
   const distEl=document.getElementById('header-distance');
-  if(startEl) startEl.textContent=fmtClock(START_HOUR,0).toUpperCase();
+  if(startEl) startEl.textContent = RACE_CFG.raceStart
+    ? fmtPT(RACE_CFG.raceStart,{month:'short',day:'numeric'}).toUpperCase()+' · '+fmtClock(START_HOUR,0).toUpperCase()
+    : fmtClock(START_HOUR,0).toUpperCase();
   if(distEl) distEl.textContent=(Math.round(TOTAL_MILES*10)/10)+' MI';
 }
 async function loadSettings(){
@@ -1222,7 +1353,10 @@ async function fetchLegs(silent){
     // Don't yank the form out from under someone mid-entry on the Log page
     const activePage=document.querySelector('.page.active');
     const onLogPage = activePage && activePage.id==='page-log' && document.activeElement && ['INPUT','SELECT'].includes(document.activeElement.tagName);
-    if(!onLogPage){
+    autoLand();
+    if(activePage && activePage.id==='page-logistics'){
+      // logistics view doesn't depend on leg data — leave it (and any open form) alone
+    } else if(!onLogPage){
       renderPage(getActivePageId());
     } else {
       renderLog(); // safe: rebuilds form with same defaults, doesn't touch focus badly enough to block typing between polls
@@ -1370,15 +1504,17 @@ function projPaceForLeg(runnerName,mi,gainFt){
   return estimateLegPace(runnerName, mi, gainFt||0, hist, currentElapsedHrs, currentTod);
 }
 
-function goPage(id,btn){
+function goPage(id,btn,byUser){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#main-nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
+  if(!btn) btn=document.querySelector('#main-nav button[data-page="'+id+'"]');
   if(btn) btn.classList.add('active');
   renderPage(id);
+  if(!byUser) window.scrollTo(0,0);
 }
 function renderPage(id){
-  ({dash:renderDash,projected:renderProjected,log:renderLog,actual:renderActual})[id]();
+  ({logistics:renderLogistics,dash:renderDash,projected:renderProjected,log:renderLog,actual:renderActual})[id]();
 }
 
 function renderDash(){
@@ -1742,19 +1878,473 @@ function renderActual(){
   </table></div></div>`;
 }
 
-renderDash();
+// ============ LOGISTICS + RACE-MODE LANDING ============
+// Separate Apps Script web app for the Logistics tab + race timing (Settings tab).
+const LOGI_API_URL = 'PASTE_LOGISTICS_URL_HERE';
+const LOGI_CACHE_KEY = 'tsp_logistics_v1';
+const RACECFG_CACHE_KEY = 'tsp_racecfg_v1';
+const RACE_TZ = 'America/Los_Angeles';
+const RACE_MAX_HOURS = 72; // safety: after start + this, treat the race as over even if the log isn't finished
+
+let RACE_CFG = { raceStart:null, trackerOpens:null };
+let logiItems = [];
+let logiLoaded = false;
+let logiFilterType = 'all';
+let logiFilterWho = 'all';
+let logiShowPast = false;
+let logiFormOpen = false;
+let logiEditingId = null;
+let lastLandMode = null;
+
+const LOGI_TYPES = [
+  {key:'Flight',     color:'#7eb8f7', startLbl:'Departs',  endLbl:'Arrives',   titlePh:'e.g. Southwest 1234',          locPh:'e.g. IND → LAX'},
+  {key:'Hotel',      color:'#c97ff5', startLbl:'Check-in', endLbl:'Check-out', titlePh:'e.g. Hampton Inn Santa Monica',  locPh:'Address'},
+  {key:'Rental Car', color:'#f7a05a', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Enterprise — minivan',      locPh:'Pickup location'},
+  {key:'RV / Van',   color:'#a8e06a', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Cruise America 30ft',       locPh:'Pickup location'},
+  {key:'Meal',       color:'#f76f6f', startLbl:'Time',     endLbl:'Ends',      titlePh:'e.g. Team dinner',               locPh:'Restaurant / address'},
+  {key:'Other',      color:'#f5e642', startLbl:'Starts',   endLbl:'Ends',      titlePh:'e.g. Packet pickup',             locPh:'Location'},
+];
+function logiType(k){ return LOGI_TYPES.find(t=>t.key===k) || LOGI_TYPES[LOGI_TYPES.length-1]; }
+
+function logiConfigured(){ return LOGI_API_URL && LOGI_API_URL.indexOf('PASTE_')===-1; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtPT(d, opts){ return d.toLocaleString('en-US', Object.assign({timeZone:RACE_TZ}, opts)); }
+
+function applyRaceCfg(cfg){
+  if(!cfg) return;
+  const rs=cfg.RaceStart?new Date(cfg.RaceStart):null;
+  const to=cfg.TrackerOpens?new Date(cfg.TrackerOpens):null;
+  RACE_CFG.raceStart = rs && !isNaN(rs) ? rs : null;
+  RACE_CFG.trackerOpens = to && !isNaN(to) ? to : (RACE_CFG.raceStart ? new Date(RACE_CFG.raceStart.getTime()-8*3600e3) : null);
+  updateHeaderMeta();
+}
+
+function loadLogiCache(){
+  try{ const c=localStorage.getItem(RACECFG_CACHE_KEY); if(c) applyRaceCfg(JSON.parse(c)); }catch(e){}
+  try{ const c=localStorage.getItem(LOGI_CACHE_KEY); if(c){ logiItems=JSON.parse(c)||[]; logiLoaded=true; } }catch(e){}
+}
+
+function ingestLogi(data){
+  if(data.config){
+    applyRaceCfg(data.config);
+    try{ localStorage.setItem(RACECFG_CACHE_KEY, JSON.stringify(data.config)); }catch(e){}
+  }
+  if(data.items){
+    logiItems=data.items;
+    logiLoaded=true;
+    try{ localStorage.setItem(LOGI_CACHE_KEY, JSON.stringify(logiItems)); }catch(e){}
+  }
+}
+
+async function fetchLogistics(silent){
+  if(!logiConfigured()) return;
+  try{
+    const res=await fetch(LOGI_API_URL+'?action=list',{method:'GET'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    ingestLogi(await res.json());
+    if(getActivePageId()==='logistics') renderLogiList();
+  }catch(err){
+    console.error('fetchLogistics error', err);
+    if(!silent) setSyncStatus('err','Logistics sync failed — showing saved copy');
+  }
+}
+
+async function postLogi(params){
+  const res=await fetch(LOGI_API_URL,{
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(params)
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  if(data.error) throw new Error(data.error);
+  ingestLogi(data);
+  return data;
+}
+
+// ---- Race mode: 'pre' (logistics landing) → 'race' (tracker landing) → 'post' (logistics again) ----
+function raceFinished(){
+  return actualLegs.length>0 && (actualLegs.length>=TOTAL_LEGS || getActualMiles()>=TOTAL_MILES-0.1);
+}
+function raceMode(){
+  const now=Date.now();
+  if(raceFinished()) return 'post';
+  if(RACE_CFG.raceStart && now > RACE_CFG.raceStart.getTime()+RACE_MAX_HOURS*3600e3) return 'post';
+  if(RACE_CFG.trackerOpens) return now>=RACE_CFG.trackerOpens.getTime() ? 'race' : 'pre';
+  return actualLegs.length>0 ? 'race' : 'pre'; // no date loaded yet: fall back to "legs are being logged"
+}
+function landingPage(){ return raceMode()==='race' ? 'dash' : 'logistics'; }
+// Only jumps pages when the mode changes (first load, 8PM night-before, finish) —
+// never yanks someone off a page they chose otherwise, and never mid-typing.
+function autoLand(){
+  const mode=raceMode();
+  if(mode===lastLandMode) return;
+  const typing=document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
+  if(typing && lastLandMode!==null) return;
+  if(lastLandMode!==null && getActivePageId()==='logistics' && logiFormOpen && landingPage()==='logistics'){ lastLandMode=mode; return; }
+  lastLandMode=mode;
+  goPage(landingPage());
+}
+
+// ---- Time helpers. Entries are stored as typed local times ("2027-04-01T09:15") ----
+function parseLocal(s){
+  if(!s) return null;
+  const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{1,2}):(\d{2}))?/);
+  if(!m) return null;
+  return {y:+m[1], mo:+m[2], d:+m[3], h:m[4]!=null?+m[4]:null, mi:m[5]!=null?+m[5]:0};
+}
+function localKey(p){ return p ? p.y*1e8+p.mo*1e6+p.d*1e4+(p.h==null?0:p.h)*100+p.mi : Infinity; }
+// "Is it over yet?" — treat typed times as Pacific (where almost everything happens)
+function localToMs(p, endOfDay){
+  if(!p) return null;
+  const h=p.h==null?(endOfDay?23:0):p.h, mi=p.h==null?(endOfDay?59:0):p.mi;
+  return Date.UTC(p.y,p.mo-1,p.d,h+7,mi);
+}
+const DOW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function dayHeader(p){
+  const dow=new Date(Date.UTC(p.y,p.mo-1,p.d)).getUTCDay();
+  return DOW[dow]+' · '+MON[p.mo-1]+' '+p.d+(p.y!==2027?', '+p.y:'');
+}
+function shortDay(p){
+  const dow=new Date(Date.UTC(p.y,p.mo-1,p.d)).getUTCDay();
+  return DOW[dow].charAt(0)+DOW[dow].slice(1).toLowerCase()+' '+MON[p.mo-1].charAt(0)+MON[p.mo-1].slice(1).toLowerCase()+' '+p.d;
+}
+function clockOf(p){
+  if(!p||p.h==null) return '';
+  return ((p.h%12)||12)+':'+(p.mi<10?'0':'')+p.mi+(p.h>=12?'pm':'am');
+}
+function sameDay(a,b){ return a&&b&&a.y===b.y&&a.mo===b.mo&&a.d===b.d; }
+
+function itemIsPast(it){
+  const s=parseLocal(it.start), e=parseLocal(it.end);
+  const ref=e||s; if(!ref) return false;
+  return localToMs(ref, true) < Date.now();
+}
+function whoList(it){ return String(it.who||'').split(',').map(x=>x.trim()).filter(Boolean); }
+function personFor(code){
+  if(code==='TEAM') return {name:'TEAM', fullName:'Whole team', color:'#f5e642'};
+  return ALL_PEOPLE.find(p=>p.name===code) || {name:code, fullName:code, color:'#888888'};
+}
+
+// ---- Countdown ----
+function countdownHTML(){
+  const mode=raceMode();
+  if(!RACE_CFG.raceStart){
+    return logiConfigured()
+      ? ''
+      : `<div class="hint-box"><strong>Logistics isn't connected yet.</strong> Deploy the Logistics Apps Script and paste its URL into <strong>LOGI_API_URL</strong>.</div>`;
+  }
+  const startTxt=fmtPT(RACE_CFG.raceStart,{weekday:'short',month:'short',day:'numeric'}).toUpperCase()+' · '+fmtPT(RACE_CFG.raceStart,{hour:'numeric',minute:'2-digit'}).toUpperCase()+' PT';
+  if(mode==='race'){
+    return `<div class="countdown" style="border-color:var(--green)">
+      <div class="countdown-label" style="color:var(--green)">● RACE WEEKEND IS LIVE</div>
+      <div class="countdown-val">LA <span>→</span>LV</div>
+      <div class="countdown-sub">START ${startTxt}</div>
+      <button class="btn" style="margin-top:14px" onclick="goPage('dash')">OPEN TRACKER</button>
+    </div>`;
+  }
+  if(mode==='post'){
+    return `<div class="countdown">
+      <div class="countdown-label">LALV27</div>
+      <div class="countdown-val">FINISHED</div>
+      <div class="countdown-sub">Everything still to come is below</div>
+    </div>`;
+  }
+  return `<div class="countdown">
+    <div class="countdown-label">RACE STARTS IN</div>
+    <div class="countdown-val" id="countdown-val">${countdownText()}</div>
+    <div class="countdown-sub">${startTxt} · TRACKER OPENS ${fmtPT(RACE_CFG.trackerOpens,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()}</div>
+  </div>`;
+}
+function countdownText(){
+  if(!RACE_CFG.raceStart) return '';
+  let ms=Math.max(0, RACE_CFG.raceStart.getTime()-Date.now());
+  const d=Math.floor(ms/86400e3); ms-=d*86400e3;
+  const h=Math.floor(ms/3600e3); ms-=h*3600e3;
+  const m=Math.floor(ms/60e3);
+  return (d?d+'<span>D</span>':'')+h+'<span>H</span>'+m+'<span>M</span>';
+}
+function tickCountdown(){
+  const el=document.getElementById('countdown-val');
+  if(el) el.innerHTML=countdownText();
+}
+
+// ---- Page ----
+function renderLogistics(){
+  const el=document.getElementById('page-logistics');
+  el.innerHTML=`
+    <div id="logi-hero">${countdownHTML()}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div class="section-head" style="margin-bottom:0">Logistics</div>
+      <button class="btn" id="logi-add-btn" onclick="openLogiForm()" ${logiConfigured()?'':'disabled style="opacity:.4"'}>+ ADD</button>
+    </div>
+    <div id="logi-form-wrap" style="margin-top:14px"></div>
+    <div class="logi-toolbar" style="margin-top:14px">
+      <button class="chip${logiFilterType==='all'?' on':''}" onclick="setLogiType('all')">ALL</button>
+      ${LOGI_TYPES.map(t=>`<button class="chip${logiFilterType===t.key?' on':''}" onclick="setLogiType('${t.key}')">${t.key.toUpperCase()}</button>`).join('')}
+      <select onchange="logiFilterWho=this.value;renderLogiList()" aria-label="Filter by person">
+        <option value="all">Everyone</option>
+        ${ALL_PEOPLE.map(p=>`<option value="${esc(p.name)}"${logiFilterWho===p.name?' selected':''}>${esc(p.fullName)}</option>`).join('')}
+      </select>
+    </div>
+    <div id="logi-list"></div>`;
+  if(logiFormOpen) renderLogiForm();
+  renderLogiList();
+}
+
+function setLogiType(k){
+  logiFilterType=k;
+  document.querySelectorAll('#page-logistics .logi-toolbar .chip').forEach(b=>{
+    const key=b.textContent==='ALL'?'all':LOGI_TYPES.find(t=>t.key.toUpperCase()===b.textContent).key;
+    b.classList.toggle('on', key===k);
+  });
+  renderLogiList();
+}
+
+function renderLogiList(){
+  const listEl=document.getElementById('logi-list');
+  if(!listEl) return;
+  const hero=document.getElementById('logi-hero');
+  if(hero) hero.innerHTML=countdownHTML();
+
+  if(!logiLoaded){
+    listEl.innerHTML = logiConfigured()
+      ? `<div class="empty"><div class="empty-big">LOADING…</div></div>`
+      : `<div class="empty"><div class="empty-big">NOT CONNECTED</div>Logistics backend URL not set yet.</div>`;
+    return;
+  }
+
+  let items=logiItems.slice();
+  if(logiFilterType!=='all') items=items.filter(it=>it.type===logiFilterType);
+  if(logiFilterWho!=='all') items=items.filter(it=>{ const w=whoList(it); return w.includes(logiFilterWho)||w.includes('TEAM')||!w.length; });
+  items.sort((a,b)=>localKey(parseLocal(a.start))-localKey(parseLocal(b.start)) || String(a.title).localeCompare(String(b.title)));
+
+  const upcoming=items.filter(it=>!itemIsPast(it));
+  const past=items.filter(it=>itemIsPast(it));
+
+  if(!logiItems.length){
+    listEl.innerHTML=`<div class="empty"><div class="empty-big">NOTHING BOOKED YET</div>Tap + ADD for flights, hotels, cars, the RV…</div>`;
+    return;
+  }
+
+  let html='';
+  if(!upcoming.length){
+    html+=`<div class="empty" style="padding:28px 20px"><div class="empty-big" style="font-size:24px">ALL CAUGHT UP</div>Nothing upcoming${logiFilterType!=='all'||logiFilterWho!=='all'?' for this filter':''}.</div>`;
+  } else {
+    html+=groupedCards(upcoming, true);
+  }
+  if(past.length){
+    html+=`<button class="btn-ghost past-toggle" onclick="logiShowPast=!logiShowPast;renderLogiList()">${logiShowPast?'HIDE':'SHOW'} PAST (${past.length})</button>`;
+    if(logiShowPast) html+=groupedCards(past.slice().reverse(), false, true);
+  }
+  listEl.innerHTML=html;
+}
+
+function groupedCards(items, markNext, isPast){
+  let html='', lastKey=null, nextMarked=!markNext;
+  items.forEach(it=>{
+    const s=parseLocal(it.start);
+    const key=s?s.y+'-'+s.mo+'-'+s.d:'none';
+    if(key!==lastKey){
+      html+=`<div class="logi-day">${s?dayHeader(s):'NO DATE YET'}</div>`;
+      lastKey=key;
+    }
+    const isNext=!nextMarked && !!s;
+    if(isNext) nextMarked=true;
+    html+=logiCard(it, isNext, isPast);
+  });
+  return html;
+}
+
+function logiCard(it, isNext, isPast){
+  const t=logiType(it.type);
+  const s=parseLocal(it.start), e=parseLocal(it.end);
+  let timeHTML='';
+  if(s){
+    timeHTML=`<small>${t.startLbl.toUpperCase()}</small>${clockOf(s)||'—'}`;
+  }
+  let endLine='';
+  if(e){
+    endLine = sameDay(s,e)
+      ? `<div><b>${t.endLbl.toUpperCase()}</b>${clockOf(e)}</div>`
+      : `<div><b>${t.endLbl.toUpperCase()}</b>${shortDay(e)}${clockOf(e)?' · '+clockOf(e):''}</div>`;
+  }
+  const who=whoList(it);
+  const isFlight=it.type==='Flight';
+  const mapsLink=(!isFlight && it.location) ? 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.location) : '';
+  const link=/^https?:\/\//i.test(it.link||'') ? it.link : '';
+  return `<div class="logi-card${isNext?' is-next':''}${isPast?' is-past':''}" style="border-left-color:${t.color}">
+    <div class="logi-top">
+      <div style="min-width:0">
+        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?' · <span style="color:var(--tape)">NEXT UP</span>':''}</div>
+        <div class="logi-title">${esc(it.title||'(untitled)')}</div>
+      </div>
+      <div class="logi-time">${timeHTML}</div>
+    </div>
+    <div class="logi-meta">
+      ${it.location?`<div><b>${isFlight?'ROUTE':'WHERE'}</b>${esc(it.location)}</div>`:''}
+      ${endLine}
+      ${it.confirmation?`<div><b>CONF #</b><button class="conf-btn" data-v="${esc(it.confirmation)}" onclick="copyConf(this)">${esc(it.confirmation)}</button></div>`:''}
+    </div>
+    ${it.notes?`<div class="logi-notes">${esc(it.notes)}</div>`:''}
+    ${who.length?`<div class="who-row">${who.map(c=>{const p=personFor(c);return `<span class="who-chip" style="border-color:${p.color}80;color:${p.color}">${esc(p.fullName)}</span>`;}).join('')}</div>`:''}
+    <div class="logi-actions">
+      ${link?`<a class="btn-ghost accent" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">OPEN LINK ↗</a>`:''}
+      ${mapsLink?`<a class="btn-ghost accent" href="${mapsLink}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">MAP ↗</a>`:''}
+      <button class="btn-ghost" style="border-color:rgba(255,255,255,0.2)" onclick="openLogiForm('${esc(it.id)}')">EDIT</button>
+      <button class="btn-ghost" onclick="deleteLogi('${esc(it.id)}')">DELETE</button>
+    </div>
+  </div>`;
+}
+
+function copyConf(btn){
+  const val=btn.getAttribute('data-v');
+  const done=()=>{ const o=btn.textContent; btn.textContent='COPIED ✓'; setTimeout(()=>{btn.textContent=o;},1200); };
+  if(navigator.clipboard) navigator.clipboard.writeText(val).then(done).catch(()=>{});
+}
+
+// ---- Add / edit form ----
+function openLogiForm(id){
+  if(!logiConfigured()) return;
+  logiEditingId=id||null;
+  logiFormOpen=true;
+  renderLogiForm();
+  const wrap=document.getElementById('logi-form-wrap');
+  if(wrap) wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function closeLogiForm(){
+  logiFormOpen=false; logiEditingId=null;
+  const wrap=document.getElementById('logi-form-wrap');
+  if(wrap) wrap.innerHTML='';
+}
+function renderLogiForm(){
+  const wrap=document.getElementById('logi-form-wrap');
+  if(!wrap) return;
+  const it=logiEditingId ? (logiItems.find(x=>x.id===logiEditingId)||{}) : {};
+  const type=it.type||'Flight';
+  const t=logiType(type);
+  const who=whoList(it);
+  const v=k=>esc(it[k]||'');
+  const dt=k=>{ const p=parseLocal(it[k]); return p?`${p.y}-${String(p.mo).padStart(2,'0')}-${String(p.d).padStart(2,'0')}T${String(p.h==null?0:p.h).padStart(2,'0')}:${String(p.mi).padStart(2,'0')}`:''; };
+  wrap.innerHTML=`<div class="form-card logi-form">
+    <div class="form-label" style="font-size:11px;margin-bottom:14px">${logiEditingId?'EDIT ITEM':'NEW ITEM'}</div>
+    <div class="form-row two">
+      <div><div class="form-label">Type</div>
+        <select id="lf-type" onchange="logiTypeChanged()">${LOGI_TYPES.map(x=>`<option${x.key===type?' selected':''}>${x.key}</option>`).join('')}</select>
+      </div>
+      <div><div class="form-label">Title</div>
+        <input type="text" id="lf-title" value="${v('title')}" placeholder="${esc(t.titlePh)}">
+      </div>
+    </div>
+    <div class="form-row two">
+      <div><div class="form-label" id="lf-start-lbl">${t.startLbl} (local time)</div>
+        <input type="datetime-local" id="lf-start" value="${dt('start')}">
+      </div>
+      <div><div class="form-label" id="lf-end-lbl">${t.endLbl} (local time)</div>
+        <input type="datetime-local" id="lf-end" value="${dt('end')}">
+      </div>
+    </div>
+    <div class="form-row two">
+      <div><div class="form-label" id="lf-loc-lbl">${type==='Flight'?'Route':'Location'}</div>
+        <input type="text" id="lf-location" value="${v('location')}" placeholder="${esc(t.locPh)}">
+      </div>
+      <div><div class="form-label">Confirmation #</div>
+        <input type="text" id="lf-conf" value="${v('confirmation')}" autocapitalize="characters" autocomplete="off">
+      </div>
+    </div>
+    <div class="form-row one">
+      <div><div class="form-label">Who</div>
+        <div class="who-pick" id="lf-who">
+          <label class="${who.includes('TEAM')?'on':''}"><input type="checkbox" value="TEAM"${who.includes('TEAM')?' checked':''} onchange="this.parentNode.classList.toggle('on',this.checked)">Whole team</label>
+          ${ALL_PEOPLE.map(p=>`<label class="${who.includes(p.name)?'on':''}"><input type="checkbox" value="${esc(p.name)}"${who.includes(p.name)?' checked':''} onchange="this.parentNode.classList.toggle('on',this.checked)">${esc(p.fullName)}</label>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="form-row one">
+      <div><div class="form-label">Link (booking, itinerary…)</div>
+        <input type="url" id="lf-link" value="${v('link')}" placeholder="https://">
+      </div>
+    </div>
+    <div class="form-row one">
+      <div><div class="form-label">Notes</div>
+        <textarea id="lf-notes" placeholder="Seats, terminal, who's driving, parking…">${v('notes')}</textarea>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="lf-save" onclick="saveLogi()">${logiEditingId?'SAVE CHANGES':'ADD'}</button>
+      <button class="btn-ghost" onclick="closeLogiForm()">CANCEL</button>
+      <span id="logi-msg"></span>
+    </div>
+  </div>`;
+}
+function logiTypeChanged(){
+  const t=logiType(document.getElementById('lf-type').value);
+  document.getElementById('lf-start-lbl').textContent=t.startLbl+' (local time)';
+  document.getElementById('lf-end-lbl').textContent=t.endLbl+' (local time)';
+  document.getElementById('lf-loc-lbl').textContent=t.key==='Flight'?'Route':'Location';
+  document.getElementById('lf-title').placeholder=t.titlePh;
+  document.getElementById('lf-location').placeholder=t.locPh;
+}
+async function saveLogi(){
+  const g=id=>document.getElementById(id);
+  const msg=g('logi-msg'), btn=g('lf-save');
+  const item={
+    id: logiEditingId||'',
+    type: g('lf-type').value,
+    title: g('lf-title').value.trim(),
+    start: g('lf-start').value,
+    end: g('lf-end').value,
+    location: g('lf-location').value.trim(),
+    confirmation: g('lf-conf').value.trim(),
+    who: Array.from(document.querySelectorAll('#lf-who input:checked')).map(x=>x.value).join(','),
+    link: g('lf-link').value.trim(),
+    notes: g('lf-notes').value.trim(),
+  };
+  if(!item.title){ msg.textContent=' ← add a title'; msg.style.color='var(--red)'; return; }
+  if(item.start && item.end && item.end<item.start){ msg.textContent=' ← end is before start'; msg.style.color='var(--red)'; return; }
+  btn.disabled=true; msg.textContent=' saving…'; msg.style.color='var(--white-dim)';
+  try{
+    await postLogi({action:'save', item});
+    closeLogiForm();
+    renderLogiList();
+  }catch(err){
+    console.error('saveLogi error', err);
+    msg.textContent=' ✗ save failed — try again'; msg.style.color='var(--red)';
+    btn.disabled=false;
+  }
+}
+async function deleteLogi(id){
+  const it=logiItems.find(x=>x.id===id);
+  if(!it) return;
+  if(!confirm('Delete "'+(it.title||'this item')+'" for everyone?')) return;
+  try{
+    await postLogi({action:'delete', id});
+    if(logiEditingId===id) closeLogiForm();
+    renderLogiList();
+  }catch(err){
+    console.error('deleteLogi error', err);
+    alert('Delete failed — try again.');
+  }
+}
+// ============ END LOGISTICS ============
+
+loadLogiCache();
+autoLand();
 loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
 loadSettings().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
+fetchLogistics(true).then(()=>autoLand());
 fetchLegs(false);
 startPolling();
+setInterval(()=>{ tickCountdown(); autoLand(); }, 30000);
+setInterval(()=>{ if(getActivePageId()==='logistics' && !logiFormOpen) fetchLogistics(true); }, 60000);
 
 // Re-sync when the phone screen wakes up / tab regains focus (e.g. app opened from home screen)
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='visible') fetchLegs(true);
+  if(document.visibilityState==='visible'){ fetchLegs(true); fetchLogistics(true); autoLand(); }
 });
-window.addEventListener('focus', ()=>fetchLegs(true));
+window.addEventListener('focus', ()=>{ fetchLegs(true); autoLand(); });
 </script>
 </body>
 </html>
-HTMLEOF
