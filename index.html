@@ -847,6 +847,8 @@
     color: var(--white-dim); margin-top: 12px;
   }
   .confirm-count.all { color: var(--green); }
+  .crew-line { margin: -4px 0 22px; }
+  .crew-line .confirm-count { margin-top: 0; }
   .logi-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .logi-actions .btn-ghost { min-height: 32px; padding: 6px 10px; font-size: 9px; }
   .logi-actions .btn-ghost.accent { border-color: var(--tape-border); color: var(--tape); }
@@ -1940,12 +1942,17 @@ function applyRaceCfg(cfg){
 function loadLogiCache(){
   try{ const c=localStorage.getItem(RACECFG_CACHE_KEY); if(c) applyRaceCfg(JSON.parse(c)); }catch(e){}
   try{ const c=localStorage.getItem(LOGI_CACHE_KEY); if(c){ logiItems=JSON.parse(c)||[]; logiLoaded=true; } }catch(e){}
+  try{ const c=localStorage.getItem(GOING_CACHE_KEY); if(c){ crewGoing=JSON.parse(c)||{}; goingLoaded=true; } }catch(e){}
 }
 
 function ingestLogi(data){
   if(data.config){
     applyRaceCfg(data.config);
     try{ localStorage.setItem(RACECFG_CACHE_KEY, JSON.stringify(data.config)); }catch(e){}
+  }
+  if(data.going){
+    crewGoing=data.going; goingLoaded=true;
+    try{ localStorage.setItem(GOING_CACHE_KEY, JSON.stringify(crewGoing)); }catch(e){}
   }
   if(data.items){
     logiItems=data.items;
@@ -1956,7 +1963,7 @@ function ingestLogi(data){
 
 async function fetchLogistics(silent){
   if(!logiConfigured()) return;
-  if(typeof logiPending!=='undefined' && logiPending>0) return;
+  if(logiPending>0) return;
   try{
     const res=await fetch(LOGI_API_URL+'?action=list',{method:'GET'});
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -2040,50 +2047,45 @@ function itemIsPast(it){
   const ref=e||s; if(!ref) return false;
   return localToMs(ref, true) < Date.now();
 }
-// People an item applies to: "Whole team" expands to every runner + support person
-function itemPeople(it){
-  const w=whoList(it);
-  if(w.includes('TEAM')) return ALL_PEOPLE.map(p=>p.name);
-  return w;
+// ---- Crew "going" line (Runners tab → Going column) ----
+let crewGoing = {};   // code -> true/false
+let goingLoaded = false;
+let logiPending = 0;
+const GOING_CACHE_KEY = 'tsp_going_v1';
+function crewLineHTML(){
+  if(!logiConfigured()) return '';
+  const n=ALL_PEOPLE.filter(p=>crewGoing[p.name]).length, tot=ALL_PEOPLE.length;
+  const all=goingLoaded && n===tot;
+  return `<div class="crew-line">
+    <div class="confirm-count${all?' all':''}">${!goingLoaded?'CREW':all?'✓ FULL CREW CONFIRMED':n+' / '+tot+' CONFIRMED GOING'} <span style="opacity:.6">· TAP TO MARK</span></div>
+    <div class="who-row" style="margin-top:6px">${ALL_PEOPLE.map(p=>{
+      const ok=!!crewGoing[p.name];
+      return `<button class="who-chip${ok?' ok':''}" style="border-color:${p.color}80;color:${p.color}" data-code="${esc(p.name)}" onclick="toggleGoing(this)" aria-pressed="${ok}" title="${ok?'Going — tap to undo':'Tap to confirm going'}"><span class="mark">${ok?'✓':''}</span>${esc(p.fullName)}</button>`;
+    }).join('')}</div>
+  </div>`;
 }
-function confirmedSet(it){ return String(it.confirmed||'').split(',').map(x=>x.trim()).filter(Boolean); }
-function confirmRowHTML(it){
-  const people=itemPeople(it);
-  if(!people.length) return '';
-  const conf=confirmedSet(it);
-  const n=people.filter(c=>conf.includes(c)).length;
-  const all=n===people.length;
-  const idA=esc(it.id);
-  return `<div class="confirm-count${all?' all':''}">${all?'✓ ALL CONFIRMED':n+' / '+people.length+' CONFIRMED'} · TAP A NAME TO MARK</div>
-    <div class="who-row" style="margin-top:6px">${people.map(c=>{
-      const p=personFor(c), ok=conf.includes(c);
-      return `<button class="who-chip${ok?' ok':''}" style="border-color:${p.color}80;color:${p.color}" data-id="${idA}" data-code="${esc(c)}" onclick="toggleConfirm(this)" aria-pressed="${ok}" title="${ok?'Confirmed — tap to undo':'Tap to confirm'}"><span class="mark">${ok?'✓':''}</span>${esc(p.fullName)}</button>`;
-    }).join('')}</div>`;
+function renderCrewLine(){
+  const el=document.getElementById('crew-line-wrap');
+  if(el) el.innerHTML=crewLineHTML();
 }
-let logiPending=0;
-async function toggleConfirm(btn){
-  const id=btn.getAttribute('data-id'), code=btn.getAttribute('data-code');
-  const it=logiItems.find(x=>x.id===id);
-  if(!it) return;
-  const before=it.confirmed||'';
-  const set=confirmedSet(it).filter(x=>x!==code);
-  const on=!confirmedSet(it).includes(code);
-  if(on) set.push(code);
-  it.confirmed=set.join(',');
-  renderLogiList(); // optimistic
+async function toggleGoing(btn){
+  const code=btn.getAttribute('data-code');
+  const before=!!crewGoing[code];
+  crewGoing[code]=!before;
+  renderCrewLine(); // optimistic
   logiPending++;
   try{
-    const res=await fetch(LOGI_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'confirm', id, code, confirmed:on})});
+    const res=await fetch(LOGI_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'setGoing', code, going:!before})});
     const data=await res.json();
     if(data.error) throw new Error(data.error);
     logiPending--;
-    if(logiPending===0){ ingestLogi(data); renderLogiList(); }
+    if(logiPending===0){ ingestLogi(data); renderCrewLine(); }
   }catch(err){
     logiPending--;
-    console.error('toggleConfirm error', err);
-    it.confirmed=before; renderLogiList();
+    console.error('toggleGoing error', err);
+    crewGoing[code]=before; renderCrewLine();
     alert(/Unknown action/.test(String(err))
-      ? 'The logistics script needs updating before confirmations can save. (Paste the new script and deploy a new version.)'
+      ? 'The logistics script needs updating before this can save. (Paste the new script and deploy a new version.)'
       : 'Couldn\'t save — check your connection and try again.');
   }
 }
@@ -2141,6 +2143,7 @@ function renderLogistics(){
   const el=document.getElementById('page-logistics');
   el.innerHTML=`
     <div id="logi-hero">${countdownHTML()}</div>
+    <div id="crew-line-wrap">${crewLineHTML()}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
       <div class="section-head" style="margin-bottom:0">Logistics</div>
       <button class="btn" id="logi-add-btn" onclick="openLogiForm()" ${logiConfigured()?'':'disabled style="opacity:.4"'}>+ ADD</button>
@@ -2173,6 +2176,7 @@ function renderLogiList(){
   if(!listEl) return;
   const hero=document.getElementById('logi-hero');
   if(hero) hero.innerHTML=countdownHTML();
+  renderCrewLine();
 
   if(!logiLoaded){
     listEl.innerHTML = logiConfigured()
@@ -2254,7 +2258,7 @@ function logiCard(it, isNext, isPast){
       ${it.confirmation?`<div><b>CONF #</b><button class="conf-btn" data-v="${esc(it.confirmation)}" onclick="copyConf(this)">${esc(it.confirmation)}</button></div>`:''}
     </div>
     ${it.notes?`<div class="logi-notes">${esc(it.notes)}</div>`:''}
-    ${confirmRowHTML(it)}
+    ${who.length?`<div class="who-row">${who.map(c=>{const p=personFor(c);return `<span class="who-chip" style="border-color:${p.color}80;color:${p.color}">${esc(p.fullName)}</span>`;}).join('')}</div>`:''}
     <div class="logi-actions">
       ${link?`<a class="btn-ghost accent" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">OPEN LINK ↗</a>`:''}
       ${mapsLink?`<a class="btn-ghost accent" href="${mapsLink}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">MAP ↗</a>`:''}
