@@ -829,6 +829,24 @@
     font-size: 9px; letter-spacing: .06em;
     padding: 2px 7px; border: 1px solid;
   }
+  button.who-chip {
+    background: transparent; cursor: pointer;
+    font-size: 11px; padding: 6px 9px; min-height: 32px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  button.who-chip .mark {
+    width: 14px; height: 14px; border: 1px solid currentColor;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; line-height: 1; opacity: .7;
+  }
+  button.who-chip.ok { background: rgba(76,175,120,0.14); border-color: var(--green) !important; color: var(--white) !important; }
+  button.who-chip.ok .mark { background: var(--green); border-color: var(--green); color: var(--black); opacity: 1; font-weight: 700; }
+  button.who-chip:disabled { opacity: .5; }
+  .confirm-count {
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em;
+    color: var(--white-dim); margin-top: 12px;
+  }
+  .confirm-count.all { color: var(--green); }
   .logi-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .logi-actions .btn-ghost { min-height: 32px; padding: 6px 10px; font-size: 9px; }
   .logi-actions .btn-ghost.accent { border-color: var(--tape-border); color: var(--tape); }
@@ -1938,6 +1956,7 @@ function ingestLogi(data){
 
 async function fetchLogistics(silent){
   if(!logiConfigured()) return;
+  if(typeof logiPending!=='undefined' && logiPending>0) return;
   try{
     const res=await fetch(LOGI_API_URL+'?action=list',{method:'GET'});
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -2020,6 +2039,53 @@ function itemIsPast(it){
   const s=parseLocal(it.start), e=parseLocal(it.end);
   const ref=e||s; if(!ref) return false;
   return localToMs(ref, true) < Date.now();
+}
+// People an item applies to: "Whole team" expands to every runner + support person
+function itemPeople(it){
+  const w=whoList(it);
+  if(w.includes('TEAM')) return ALL_PEOPLE.map(p=>p.name);
+  return w;
+}
+function confirmedSet(it){ return String(it.confirmed||'').split(',').map(x=>x.trim()).filter(Boolean); }
+function confirmRowHTML(it){
+  const people=itemPeople(it);
+  if(!people.length) return '';
+  const conf=confirmedSet(it);
+  const n=people.filter(c=>conf.includes(c)).length;
+  const all=n===people.length;
+  const idA=esc(it.id);
+  return `<div class="confirm-count${all?' all':''}">${all?'✓ ALL CONFIRMED':n+' / '+people.length+' CONFIRMED'} · TAP A NAME TO MARK</div>
+    <div class="who-row" style="margin-top:6px">${people.map(c=>{
+      const p=personFor(c), ok=conf.includes(c);
+      return `<button class="who-chip${ok?' ok':''}" style="border-color:${p.color}80;color:${p.color}" data-id="${idA}" data-code="${esc(c)}" onclick="toggleConfirm(this)" aria-pressed="${ok}" title="${ok?'Confirmed — tap to undo':'Tap to confirm'}"><span class="mark">${ok?'✓':''}</span>${esc(p.fullName)}</button>`;
+    }).join('')}</div>`;
+}
+let logiPending=0;
+async function toggleConfirm(btn){
+  const id=btn.getAttribute('data-id'), code=btn.getAttribute('data-code');
+  const it=logiItems.find(x=>x.id===id);
+  if(!it) return;
+  const before=it.confirmed||'';
+  const set=confirmedSet(it).filter(x=>x!==code);
+  const on=!confirmedSet(it).includes(code);
+  if(on) set.push(code);
+  it.confirmed=set.join(',');
+  renderLogiList(); // optimistic
+  logiPending++;
+  try{
+    const res=await fetch(LOGI_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'confirm', id, code, confirmed:on})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    logiPending--;
+    if(logiPending===0){ ingestLogi(data); renderLogiList(); }
+  }catch(err){
+    logiPending--;
+    console.error('toggleConfirm error', err);
+    it.confirmed=before; renderLogiList();
+    alert(/Unknown action/.test(String(err))
+      ? 'The logistics script needs updating before confirmations can save. (Paste the new script and deploy a new version.)'
+      : 'Couldn\'t save — check your connection and try again.');
+  }
 }
 function whoList(it){ return String(it.who||'').split(',').map(x=>x.trim()).filter(Boolean); }
 function personFor(code){
@@ -2188,7 +2254,7 @@ function logiCard(it, isNext, isPast){
       ${it.confirmation?`<div><b>CONF #</b><button class="conf-btn" data-v="${esc(it.confirmation)}" onclick="copyConf(this)">${esc(it.confirmation)}</button></div>`:''}
     </div>
     ${it.notes?`<div class="logi-notes">${esc(it.notes)}</div>`:''}
-    ${who.length?`<div class="who-row">${who.map(c=>{const p=personFor(c);return `<span class="who-chip" style="border-color:${p.color}80;color:${p.color}">${esc(p.fullName)}</span>`;}).join('')}</div>`:''}
+    ${confirmRowHTML(it)}
     <div class="logi-actions">
       ${link?`<a class="btn-ghost accent" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">OPEN LINK ↗</a>`:''}
       ${mapsLink?`<a class="btn-ghost accent" href="${mapsLink}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">MAP ↗</a>`:''}
