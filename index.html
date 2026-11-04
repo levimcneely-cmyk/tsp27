@@ -12,7 +12,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
 <link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Permanent+Marker&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     /* Brand — sampled from the TSP logos */
@@ -33,10 +33,20 @@
     --green: #1f8a4c;
     --display: 'Londrina Solid', 'Arial Black', sans-serif;
     --mono: 'Space Mono', ui-monospace, monospace;
-    /* Torn-tape edges: rough left/right ends like the gaffer-tape lettering */
-    --torn: polygon(0% 8%, 2% 0%, 98% 4%, 100% 0%, 99% 30%, 100% 58%, 98% 100%, 60% 96%, 2% 100%, 0% 70%, 1% 40%);
-    --torn-soft: polygon(0% 3%, 1.5% 0%, 98.5% 2%, 100% 0%, 99.6% 50%, 100% 97%, 97% 100%, 3% 98%, 0% 100%, 0.4% 50%);
+    --marker: 'Permanent Marker', 'Comic Sans MS', cursive;   /* black Sharpie */
+    /* Torn tape: long edges stay straight, only the ends are ripped (fixed depth so it reads the same at any width) */
+    /* Torn tape: long edges stay straight; only the ends are ripped — shallow, irregular fibers (not zigzags) */
+    --torn: polygon(2px 0, calc(100% - 3px) 0, calc(100% - 1px) 11%, 100% 19%, calc(100% - 2px) 34%, calc(100% - 1px) 41%, 100% 58%, calc(100% - 3px) 66%, calc(100% - 1px) 79%, calc(100% - 2px) 100%, 3px 100%, 1px 88%, 0 76%, 2px 63%, 1px 49%, 3px 37%, 0 24%, 1px 9%);
+    --torn-wide: polygon(3px 0, calc(100% - 2px) 0, 100% 7%, calc(100% - 3px) 15%, calc(100% - 1px) 26%, calc(100% - 4px) 33%, calc(100% - 2px) 47%, 100% 55%, calc(100% - 3px) 68%, calc(100% - 1px) 77%, calc(100% - 4px) 89%, calc(100% - 2px) 100%, 4px 100%, 1px 93%, 3px 82%, 0 71%, 2px 60%, 4px 52%, 1px 40%, 3px 28%, 0 17%, 2px 6%);
+    --torn-thin: polygon(1px 0, calc(100% - 3px) 0, 100% 40%, calc(100% - 2px) 70%, calc(100% - 4px) 100%, 3px 100%, 0 65%, 2px 30%);
+    /* Blue painter's tape — matte crepe: faint, irregular fibers across the tape */
+    --painters: repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 4px, rgba(0,0,0,0.03) 4px 5px, transparent 5px 9px);
+    /* Gray duct tape — soft woven cloth + a little sheen */
+    --duct: repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 4px),
+            repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 4px),
+            linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 50%, rgba(0,0,0,0.08));
   }
+  .marker { font-family: var(--marker); font-weight: 400; letter-spacing: .02em; text-transform: none; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { -webkit-text-size-adjust: 100%; }
@@ -84,14 +94,17 @@
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
   .status-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--blue); font-weight: 700; }
+  .header-status.pre .status-dot, .header-status.post .status-dot { display: none; }
+  .header-status.pre .status-label, .header-status.post .status-label { font-family: var(--marker); font-size: 18px; letter-spacing: .02em; font-weight: 400; color: var(--ink); }
   /* gray tape strip under the header, echoing the strips under T-S-P */
   .header::after {
     content: '';
     display: block;
-    height: 9px;
+    height: 12px;
     margin: 0 16px;
-    background: var(--gray);
-    clip-path: var(--torn-soft);
+    background-color: var(--gray);
+    background-image: var(--duct);
+    clip-path: var(--torn-thin);
   }
 
   /* ---------- Nav — fixed bottom tab bar on mobile ---------- */
@@ -116,9 +129,10 @@
   nav button::after {
     content: '';
     position: absolute; top: -2px; left: 10%; right: 10%;
-    height: 5px;
-    background: var(--blue);
-    clip-path: var(--torn);
+    height: 6px;
+    background-color: var(--blue);
+    background-image: var(--painters);
+    clip-path: var(--torn-thin);
     transform: scaleX(0); transition: transform .2s;
   }
   nav button.active { color: var(--blue); }
@@ -149,7 +163,6 @@
     background: var(--paper2);
     padding: 14px 16px;
     position: relative;
-    clip-path: var(--torn-soft);
   }
   .stat-cell-label {
     font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
@@ -160,7 +173,7 @@
     line-height: 1; color: var(--ink);
   }
   .stat-cell-sub { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); margin-top: 4px; }
-  .stat-cell.highlight { background: var(--blue); }
+  .stat-cell.highlight { background-color: var(--blue); background-image: var(--painters); clip-path: var(--torn); }
   .stat-cell.highlight .stat-cell-val,
   .stat-cell.highlight .stat-cell-label,
   .stat-cell.highlight .stat-cell-sub { color: #fff; }
@@ -173,12 +186,23 @@
     color: var(--ink-dim); margin-bottom: 6px;
   }
   .progress-track {
-    height: 10px;
-    background: var(--gray-tint);
+    height: 12px;
+    background-color: #c9c9c9;
+    background-image: var(--duct);
     position: relative; overflow: hidden;
-    clip-path: var(--torn-soft);
+    clip-path: var(--torn-thin);
   }
-  .progress-fill { height: 100%; background: var(--blue); position: relative; transition: width .6s ease; }
+  .progress-fill { height: 100%; background-color: var(--blue); background-image: var(--painters); position: relative; transition: width .6s ease; opacity: .92; }
+
+  /* Route map — the logo's Sharpie line, with painter's tape over the miles run */
+  .route-wrap { margin-bottom: 18px; }
+  .route-svg { display: block; width: 100%; max-height: 260px; margin: 2px auto 0; overflow: visible; }
+  .route-ink  { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .route-tape { fill: none; stroke: var(--blue); stroke-width: 20; stroke-linecap: butt; stroke-linejoin: round; opacity: .82; }
+  .route-end  { font-family: var(--marker); font-size: 44px; fill: var(--gray); }
+  .route-dot  { stroke: #fff; stroke-width: 5; }
+  .route-meta { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); margin-top: 4px; }
+  .route-meta strong { color: var(--blue); }
 
   /* ---------- Now running ---------- */
   .now-card {
@@ -190,11 +214,11 @@
     overflow: hidden;
   }
   .now-card::before {
-    content: 'NOW RUNNING';
+    content: 'now running';
     position: absolute; top: 0; right: 0;
-    font-family: var(--mono); font-weight: 700; font-size: 9px; letter-spacing: .18em;
-    color: #fff; background: var(--ink);
-    padding: 5px 12px 5px 14px;
+    font-family: var(--marker); font-size: 15px; letter-spacing: .02em;
+    color: var(--ink); background-color: #b3b3b3; background-image: var(--duct);
+    padding: 4px 14px 3px 16px;
     clip-path: var(--torn);
   }
   .now-runner-name {
@@ -224,8 +248,8 @@
     display: flex; align-items: center; justify-content: space-between;
   }
   .deck-label {
-    font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
-    color: var(--ink-dim); margin-bottom: 3px; text-transform: uppercase;
+    font-family: var(--marker); font-size: 14px; letter-spacing: .01em;
+    color: var(--ink-dim); margin-bottom: 2px;
   }
   .deck-name {
     font-family: var(--display); font-weight: 900; font-size: 28px; letter-spacing: .01em;
@@ -262,7 +286,8 @@
   /* ---------- Section header — blue tape ---------- */
   .section-head {
     display: inline-block;
-    background: var(--blue);
+    background-color: var(--blue);
+    background-image: var(--painters);
     color: #fff;
     font-family: var(--display); font-weight: 900;
     font-size: 20px; letter-spacing: .06em; text-transform: uppercase;
@@ -351,15 +376,15 @@
     font-size: 20px; letter-spacing: .06em; line-height: 1;
     padding: 12px 30px 11px;
     min-height: 46px;
-    background: var(--blue); color: #fff;
+    background-color: var(--blue); background-image: var(--painters); color: #fff;
     border: none; cursor: pointer;
     position: relative;
     clip-path: var(--torn);
     transition: background .15s, transform .1s;
   }
-  .btn:hover { background: var(--blue-dark); }
+  .btn:hover { background-color: var(--blue-dark); }
   .btn:active { transform: translateY(1px); }
-  .btn:disabled { background: var(--gray); cursor: default; }
+  .btn:disabled { background-color: var(--gray); cursor: default; }
   .btn-ghost {
     background: var(--paper);
     border: 2px solid var(--line-strong);
@@ -408,8 +433,8 @@
     border: 2px dashed var(--line-strong);
   }
   .empty-big {
-    font-family: var(--display); font-weight: 900; font-size: 34px; letter-spacing: .04em;
-    color: var(--gray); margin-bottom: 8px;
+    font-family: var(--marker); font-size: 30px; letter-spacing: .01em;
+    color: var(--ink); margin-bottom: 8px;
   }
 
   /* ---------- Sync status bar ---------- */
@@ -449,14 +474,15 @@
 
   /* ============ LOGISTICS ============ */
   .countdown {
-    background: var(--blue);
+    background-color: var(--blue);
+    background-image: linear-gradient(90deg, transparent 71%, rgba(0,0,0,0.13) 71%, rgba(0,0,0,0.13) 74.5%, transparent 74.5%), var(--painters);
     color: #fff;
-    padding: 20px 22px 18px;
+    padding: 18px 26px 18px;
     margin-bottom: 14px;
     position: relative; overflow: hidden;
-    clip-path: var(--torn-soft);
+    clip-path: var(--torn-wide);
   }
-  .countdown-label { font-family: var(--mono); font-size: 9px; letter-spacing: .18em; font-weight: 700; opacity: .85; margin-bottom: 4px; }
+  .countdown-label { font-family: var(--marker); font-size: 17px; letter-spacing: .02em; margin-bottom: 2px; }
   .countdown-val {
     font-family: var(--display); font-weight: 900;
     font-size: 64px; letter-spacing: .01em; line-height: 1;
@@ -464,7 +490,7 @@
   .countdown-val span { font-size: 26px; color: rgba(255,255,255,0.65); margin: 0 12px 0 3px; }
   .countdown-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; opacity: .85; margin-top: 8px; line-height: 1.6; }
   .countdown .btn { background: #fff; color: var(--blue); }
-  .countdown.live { background: var(--ink); }
+  .countdown.live { background-color: var(--ink); background-image: none; }
   .countdown-mark { position: absolute; right: 18px; top: 50%; transform: translateY(-50%) rotate(-4deg); height: 70%; opacity: .95; }
 
   .logi-toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
@@ -481,7 +507,7 @@
     color: var(--ink); margin: 22px 0 8px;
     display: flex; align-items: center; gap: 10px;
   }
-  .logi-day::after { content: ''; flex: 1; height: 6px; background: var(--gray-tint); clip-path: var(--torn-soft); }
+  .logi-day::after { content: ''; flex: 1; height: 8px; background-color: #c9c9c9; background-image: var(--duct); clip-path: var(--torn-thin); }
   .logi-card {
     background: var(--paper);
     border: 2px solid var(--line);
@@ -493,6 +519,8 @@
   .logi-card.is-past { opacity: .5; }
   .logi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .logi-type { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; font-weight: 700; margin-bottom: 4px; }
+  .next-up { font-family: var(--marker); font-size: 14px; letter-spacing: .01em; color: var(--ink); margin-left: 6px; position: relative; top: 1px; }
+  .next-up::after { content: ''; position: absolute; left: -2px; right: -3px; bottom: -3px; height: 3px; background: var(--ink); border-radius: 2px; transform: rotate(-1.5deg); }
   .logi-title { font-family: var(--display); font-weight: 900; font-size: 26px; letter-spacing: .01em; line-height: 1.05; color: var(--ink); }
   .logi-time { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); text-align: right; white-space: nowrap; }
   .logi-time small { display: block; font-size: 9px; font-weight: 400; color: var(--ink-dim); letter-spacing: .08em; }
@@ -526,7 +554,7 @@
     padding: 7px 10px; cursor: pointer; user-select: none; color: var(--ink-dim);
   }
   .who-pick input { display: none; }
-  .who-pick label.on { border-color: var(--blue); color: #fff; background: var(--blue); }
+  .who-pick label.on { border-color: var(--blue); color: #fff; background-color: var(--blue); background-image: var(--painters); }
   #logi-msg { font-family: var(--mono); font-size: 11px; margin-left: 12px; }
   .past-toggle { width: 100%; margin-top: 14px; }
   @media (max-width: 600px) {
@@ -538,7 +566,8 @@
 
   /* Crew "going" line */
   .crew-line { margin: 0 0 22px; }
-  .confirm-count { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; font-weight: 700; color: var(--ink-dim); }
+  .confirm-count { font-family: var(--marker); font-size: 15px; letter-spacing: .01em; color: var(--ink); margin-bottom: 2px; }
+  .confirm-count .hint { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; color: var(--ink-faint); margin-left: 6px; }
   .confirm-count.all { color: var(--green); }
   button.who-chip {
     background: var(--paper); cursor: pointer;
@@ -546,12 +575,14 @@
     display: inline-flex; align-items: center; gap: 7px;
   }
   button.who-chip .mark {
-    width: 14px; height: 14px; border: 2px solid currentColor;
+    width: 16px; height: 16px; border: 2px solid currentColor;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 10px; line-height: 1;
+    position: relative; flex-shrink: 0;
   }
-  button.who-chip.ok { background: var(--blue) !important; border-color: var(--blue) !important; color: #fff !important; }
-  button.who-chip.ok .mark { background: #fff; border-color: #fff; color: var(--blue); font-weight: 700; }
+  .mark svg { position: absolute; left: -1px; top: -6px; width: 22px; height: 20px; overflow: visible; }
+  .mark svg path { fill: none; stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  button.who-chip.ok { background-color: var(--blue) !important; background-image: var(--painters); border-color: var(--blue) !important; color: #fff !important; }
+  button.who-chip.ok .mark { background: #fff; border-color: #fff; }
 
   .site-foot { text-align: center; padding: 34px 0 10px; }
   .site-foot img { height: 60px; width: auto; opacity: .9; }
@@ -577,9 +608,9 @@
       <div class="header-meta-label">RUNNERS</div>
       <div class="header-meta-val">6</div>
     </div>
-    <div class="header-status">
+    <div class="header-status pre" id="header-status">
       <div class="status-dot"></div>
-      <span class="status-label">LIVE</span>
+      <span class="status-label" id="status-label">LALV27</span>
     </div>
   </div>
 </header>
@@ -1244,18 +1275,16 @@ function renderDash(){
     <div class="stat-cell highlight"><div class="stat-cell-label">Proj Finish</div><div class="stat-cell-val" style="font-size:22px">${fmtClock(START_HOUR,projFinish)}</div><div class="stat-cell-sub">${fmtDur(projFinish)}</div></div>
   </div>
 
-  <div class="progress-wrap">
-    <div class="progress-meta"><span>SANTA MONICA</span><span>${progress}% — ${Math.round(actMiles*10)/10} mi covered</span><span>LAS VEGAS</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
-  </div>
-  <div class="progress-wrap" style="margin-top:-12px">
+  ${routeHTML(actMiles/TOTAL_MILES, nextEff?RUNNER_COLORS[nextEff.runner.name]:null)}
+  <div class="route-meta"><strong>${progress}%</strong> — ${Math.round(actMiles*10)/10} of ${TOTAL_MILES} mi · Santa Monica → Las Vegas</div>
+  <div class="progress-wrap" style="margin-top:14px">
     <div class="progress-meta">
       <span style="color:var(--blue);opacity:.7">▲ ELEVATION</span>
       <span>${elevProgress}% — ${actGain.toLocaleString()} ft climbed</span>
       <span style="opacity:.5">${getTotalGainFt().toLocaleString()} ft total</span>
     </div>
-    <div class="progress-track" style="height:5px;border-color:var(--blue-line)">
-      <div class="progress-fill" style="width:${elevProgress}%;background:linear-gradient(90deg,var(--blue-dark),var(--blue))"></div>
+    <div class="progress-track" style="height:9px">
+      <div class="progress-fill" style="width:${elevProgress}%"></div>
     </div>
   </div>`;
 
@@ -1343,6 +1372,29 @@ function renderDash(){
   }
 
   el.innerHTML=html;
+  placeRouteDot(actMiles/TOTAL_MILES);
+}
+
+// ---- Route map: the Sharpie line traced from the TSP logo ----
+const ROUTE_W=838, ROUTE_H=459;
+const ROUTE_D='M14 445.3 C16.5 443.1 25 436.7 29 432 C33 427.3 36.3 422.8 38 417 C39.7 411.2 40.3 407 39 397 C37.7 387 30.8 365.2 30 357 C29.2 348.8 31.7 350.3 34 348 C36.3 345.7 33.2 344 44 343 C54.8 342 85.7 343.7 99 342 C112.3 340.3 113.2 335.5 124 333 C134.8 330.5 142.3 328 164 327 C185.7 326 234 325.5 254 327 C274 328.5 277.8 335.2 284 336 C290.2 336.8 288.3 335.2 291 332 C293.7 328.8 297 320.8 300 317 C303 313.2 299.2 315.2 309 309 C318.8 302.8 344 286.2 359 280 C374 273.8 384 271.7 399 272 C414 272.3 434 280.3 449 282 C464 283.7 480.7 282.5 489 282 C497.3 281.5 493.2 282.3 499 279 C504.8 275.7 518.2 265.5 524 262 C529.8 258.5 528.2 259.3 534 258 C539.8 256.7 551.5 256.2 559 254 C566.5 251.8 572.5 249.5 579 245 C585.5 240.5 593.8 232.5 598 227 C602.2 221.5 603 227.8 604 212 C605 196.2 604.3 147 604 132 C603.7 117 604.2 127.8 602 122 C599.8 116.2 594 107 591 97 C588 87 584.7 69.5 584 62 C583.3 54.5 585.3 54.8 587 52 C588.7 49.2 591.2 46.7 594 45 C596.8 43.3 594 42.7 604 42 C614 41.3 641.5 43.3 654 41 C666.5 38.7 670.7 30.5 679 28 C687.3 25.5 695.7 28.3 704 26 C712.3 23.7 720.7 14 729 14 C737.3 14 746.5 23.5 754 26 C761.5 28.5 766.5 27.2 774 29 C781.5 30.8 790.7 35.4 799 37 C807.3 38.6 819.8 38.4 824 38.7';
+function routeHTML(frac, dotColor){
+  const f=Math.max(0,Math.min(1,frac||0));
+  return `<div class="route-wrap">
+    <svg class="route-svg" viewBox="-70 -30 ${ROUTE_W+140} ${ROUTE_H+60}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Route progress: ${Math.round(f*100)} percent from LA to LV">
+      <path id="route-ink" class="route-ink" d="${ROUTE_D}"/>
+      ${f>0?`<path class="route-tape" d="${ROUTE_D}" pathLength="1000" stroke-dasharray="${(f*1000).toFixed(1)} 1000"/>`:''}
+      <text class="route-end" x="-62" y="${ROUTE_H+8}">LA</text>
+      <text class="route-end" x="${ROUTE_W-6}" y="40">LV</text>
+      <circle id="route-dot" class="route-dot" r="15" cx="-999" cy="-999" fill="${dotColor||'var(--blue)'}"/>
+    </svg>
+  </div>`;
+}
+function placeRouteDot(frac){
+  const path=document.getElementById('route-ink'), dot=document.getElementById('route-dot');
+  if(!path||!dot||!path.getTotalLength) return;
+  const L=path.getTotalLength(), pt=path.getPointAtLength(L*Math.max(0,Math.min(1,frac||0)));
+  dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
 }
 
 function renderProjected(){
@@ -1687,8 +1739,15 @@ function raceMode(){
 function landingPage(){ return raceMode()==='race' ? 'dash' : 'logistics'; }
 // Only jumps pages when the mode changes (first load, 8PM night-before, finish) —
 // never yanks someone off a page they chose otherwise, and never mid-typing.
+function updateLiveBadge(mode){
+  const box=document.getElementById('header-status'), lbl=document.getElementById('status-label');
+  if(!box||!lbl) return;
+  box.className='header-status '+mode;
+  lbl.textContent = mode==='race' ? 'LIVE' : mode==='post' ? 'Finished!' : 'LALV27';
+}
 function autoLand(){
   const mode=raceMode();
+  updateLiveBadge(mode);
   if(mode===lastLandMode) return;
   const typing=document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
   if(typing && lastLandMode!==null) return;
@@ -1737,15 +1796,16 @@ let crewGoing = {};   // code -> true/false
 let goingLoaded = false;
 let logiPending = 0;
 const GOING_CACHE_KEY = 'tsp_going_v1';
+const SHARPIE_CHECK='<svg viewBox="0 0 22 20" aria-hidden="true"><path d="M2.5 11.5 C4.5 12.8 6.2 14.6 7.6 17 C10.4 10.6 14.6 5.2 20 1.8"/></svg>';
 function crewLineHTML(){
   if(!logiConfigured()) return '';
   const n=ALL_PEOPLE.filter(p=>crewGoing[p.name]).length, tot=ALL_PEOPLE.length;
   const all=goingLoaded && n===tot;
   return `<div class="crew-line">
-    <div class="confirm-count${all?' all':''}">${!goingLoaded?'CREW':all?'✓ FULL CREW CONFIRMED':n+' / '+tot+' CONFIRMED GOING'} <span style="opacity:.6">· TAP TO MARK</span></div>
+    <div class="confirm-count${all?' all':''}">${!goingLoaded?'Crew':all?'Full crew confirmed!':n+' of '+tot+' confirmed going'}<span class="hint">TAP TO MARK</span></div>
     <div class="who-row" style="margin-top:6px">${ALL_PEOPLE.map(p=>{
       const ok=!!crewGoing[p.name];
-      return `<button class="who-chip${ok?' ok':''}" style="border-color:${p.color}80;color:${p.color}" data-code="${esc(p.name)}" onclick="toggleGoing(this)" aria-pressed="${ok}" title="${ok?'Going — tap to undo':'Tap to confirm going'}"><span class="mark">${ok?'✓':''}</span>${esc(p.fullName)}</button>`;
+      return `<button class="who-chip${ok?' ok':''}" style="border-color:${p.color}80;color:${p.color}" data-code="${esc(p.name)}" onclick="toggleGoing(this)" aria-pressed="${ok}" title="${ok?'Going — tap to undo':'Tap to confirm going'}"><span class="mark">${ok?SHARPIE_CHECK:''}</span>${esc(p.fullName)}</button>`;
     }).join('')}</div>
   </div>`;
 }
@@ -1933,7 +1993,7 @@ function logiCard(it, isNext, isPast){
   return `<div class="logi-card${isNext?' is-next':''}${isPast?' is-past':''}" style="border-left-color:${t.color}">
     <div class="logi-top">
       <div style="min-width:0">
-        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?' · <span style="color:var(--blue)">NEXT UP</span>':''}</div>
+        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?'<span class="next-up">next up</span>':''}</div>
         <div class="logi-title">${esc(it.title||'(untitled)')}</div>
       </div>
       <div class="logi-time">${timeHTML}</div>
