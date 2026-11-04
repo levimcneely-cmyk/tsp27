@@ -4,38 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Speed Project">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TSP">
+<meta name="theme-color" content="#ffffff">
 <meta name="format-detection" content="telephone=no">
-<title>The Speed Project — Race HQ</title>
+<title>TSP — Race HQ</title>
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --black: #0a0a0a;
-    --black2: #111111;
-    --black3: #1a1a1a;
-    --tape: #f5e642;
-    --tape-dark: #d4c832;
-    --tape-dim: rgba(245,230,66,0.12);
-    --tape-border: rgba(245,230,66,0.35);
-    --white: #f0ede4;
-    --white-dim: rgba(240,237,228,0.55);
-    --white-faint: rgba(240,237,228,0.12);
-    --red: #e84040;
-    --green: #4caf78;
-    --gray: #444;
-    --gray2: #2a2a2a;
+    /* Brand — sampled from the TSP logos */
+    --blue: #125db9;
+    --blue-dark: #0b4389;
+    --blue-tint: rgba(18,93,185,0.08);
+    --blue-line: rgba(18,93,185,0.35);
+    --gray: #8f8f8f;
+    --gray-tint: #efefef;
+    --ink: #000000;
+    --ink-dim: #5f5f5f;
+    --ink-faint: #9b9b9b;
+    --paper: #ffffff;
+    --paper2: #f6f6f4;
+    --line: rgba(0,0,0,0.10);
+    --line-strong: rgba(0,0,0,0.22);
+    --red: #c8312b;
+    --green: #1f8a4c;
+    --display: 'Londrina Solid', 'Arial Black', sans-serif;
+    --mono: 'Space Mono', ui-monospace, monospace;
+    /* Torn-tape edges: rough left/right ends like the gaffer-tape lettering */
+    --torn: polygon(0% 8%, 2% 0%, 98% 4%, 100% 0%, 99% 30%, 100% 58%, 98% 100%, 60% 96%, 2% 100%, 0% 70%, 1% 40%);
+    --torn-soft: polygon(0% 3%, 1.5% 0%, 98.5% 2%, 100% 0%, 99.6% 50%, 100% 97%, 97% 100%, 3% 98%, 0% 100%, 0.4% 50%);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
   html { -webkit-text-size-adjust: 100%; }
 
   body {
-    background: var(--black);
-    color: var(--white);
+    background: var(--paper);
+    color: var(--ink);
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     min-height: 100vh;
@@ -46,249 +54,136 @@
     padding-bottom: calc(64px + env(safe-area-inset-bottom));
   }
 
-  /* Tape texture overlay on nav */
-  .tape-strip {
-    position: relative;
-    background: var(--tape);
-    overflow: hidden;
-  }
-  .tape-strip::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -55deg,
-      transparent,
-      transparent 6px,
-      rgba(0,0,0,0.06) 6px,
-      rgba(0,0,0,0.06) 12px
-    );
-    pointer-events: none;
-  }
-  .tape-strip::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: rgba(255,255,255,0.3);
-  }
-
-  /* Header */
+  /* ---------- Header ---------- */
   .header {
-    padding: 0;
     padding-top: env(safe-area-inset-top);
-    border-bottom: 3px solid var(--tape);
+    background: var(--paper);
     position: relative;
   }
   .header-inner {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     gap: 0;
+    padding: 12px 24px 10px;
   }
-  .header-logo {
-    padding: 16px 24px;
-    border-right: 2px solid var(--tape);
-  }
-  .header-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: .06em;
-    color: var(--white);
-    line-height: 1;
-  }
-  .header-sub {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    color: var(--tape);
-    letter-spacing: .15em;
-    margin-top: 3px;
-  }
+  .header-logo { display: flex; align-items: center; padding-right: 22px; }
+  .header-logo img { height: 64px; width: auto; display: block; }
   .header-meta {
-    padding: 12px 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    border-right: 1px solid rgba(255,255,255,0.08);
+    padding: 4px 18px;
+    display: flex; flex-direction: column; justify-content: center; gap: 3px;
+    border-left: 2px solid var(--gray-tint);
   }
   .header-meta-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .12em;
-    color: var(--white-dim);
+    font-family: var(--mono); font-size: 8px; letter-spacing: .14em; color: var(--gray);
   }
   .header-meta-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: .04em;
-    color: var(--tape);
-    line-height: 1;
+    font-family: var(--display); font-weight: 900; font-size: 22px; letter-spacing: .02em;
+    color: var(--blue); line-height: 1;
   }
-  .header-status {
-    margin-left: auto;
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%,100%{opacity:1} 50%{opacity:.4}
-  }
-  .status-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: .1em;
-    color: var(--green);
+  .header-status { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  .status-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--blue); font-weight: 700; }
+  /* gray tape strip under the header, echoing the strips under T-S-P */
+  .header::after {
+    content: '';
+    display: block;
+    height: 9px;
+    margin: 0 16px;
+    background: var(--gray);
+    clip-path: var(--torn-soft);
   }
 
-  /* Nav — fixed bottom tab bar on mobile */
+  /* ---------- Nav — fixed bottom tab bar on mobile ---------- */
   nav {
     display: flex;
-    gap: 0;
-    background: var(--black2);
-    border-top: 2px solid var(--black3);
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
+    background: var(--paper);
+    border-top: 2px solid var(--ink);
+    position: fixed; left: 0; right: 0; bottom: 0;
     z-index: 50;
     padding-bottom: env(safe-area-inset-bottom);
   }
   nav button {
     flex: 1;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: .1em;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em; font-weight: 700;
     padding: 12px 6px 10px;
-    background: transparent;
-    border: none;
-    color: var(--white-dim);
-    cursor: pointer;
-    position: relative;
+    background: transparent; border: none;
+    color: var(--ink-faint);
+    cursor: pointer; position: relative;
     transition: color .2s;
-    white-space: nowrap;
-    min-height: 48px;
+    white-space: nowrap; min-height: 48px;
   }
   nav button::after {
     content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--tape);
-    transform: scaleX(0);
-    transition: transform .2s;
+    position: absolute; top: -2px; left: 10%; right: 10%;
+    height: 5px;
+    background: var(--blue);
+    clip-path: var(--torn);
+    transform: scaleX(0); transition: transform .2s;
   }
-  nav button.active {
-    color: var(--tape);
-  }
-  nav button.active::after {
-    transform: scaleX(1);
-  }
-  nav button:hover:not(.active) {
-    color: var(--white);
-  }
+  nav button.active { color: var(--blue); }
+  nav button.active::after { transform: scaleX(1); }
+  nav button:hover:not(.active) { color: var(--ink); }
   @media (min-width: 601px) {
     nav {
-      position: sticky;
-      top: 0;
-      bottom: auto;
-      border-top: none;
-      border-bottom: 2px solid var(--black3);
+      position: sticky; top: 0; bottom: auto;
+      border-top: none; border-bottom: 2px solid var(--gray-tint);
     }
-    nav button { flex: none; padding: 14px 24px; font-size: 11px; border-right: 1px solid rgba(255,255,255,0.05); }
-    nav button::after { top: auto; bottom: 0; }
+    nav button { flex: none; padding: 14px 24px; font-size: 11px; }
+    nav button::after { top: auto; bottom: -2px; }
     body { padding-bottom: 0; }
   }
 
-  /* Pages */
+  /* ---------- Pages ---------- */
   .page { display: none; padding: 24px; }
   .page.active { display: block; }
 
-  /* Stat grid */
+  /* ---------- Stat grid ---------- */
   .stat-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0,1fr));
-    gap: 2px;
+    gap: 8px;
     margin-bottom: 20px;
-    border: 2px solid var(--tape);
   }
   .stat-cell {
-    background: var(--black2);
+    background: var(--paper2);
     padding: 14px 16px;
-    border-right: 1px solid rgba(255,255,255,0.06);
     position: relative;
+    clip-path: var(--torn-soft);
   }
-  .stat-cell:last-child { border-right: none; }
   .stat-cell-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .14em;
-    color: var(--white-dim);
-    margin-bottom: 6px;
-    text-transform: uppercase;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
+    color: var(--ink-dim); margin-bottom: 6px; text-transform: uppercase;
   }
   .stat-cell-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 30px;
-    letter-spacing: .03em;
-    line-height: 1;
-    color: var(--white);
+    font-family: var(--display); font-weight: 900; font-size: 32px; letter-spacing: .01em;
+    line-height: 1; color: var(--ink);
   }
-  .stat-cell-sub {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    color: var(--white-dim);
-    margin-top: 3px;
-  }
-  .stat-cell.highlight .stat-cell-val { color: var(--tape); }
+  .stat-cell-sub { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); margin-top: 4px; }
+  .stat-cell.highlight { background: var(--blue); }
+  .stat-cell.highlight .stat-cell-val,
+  .stat-cell.highlight .stat-cell-label,
+  .stat-cell.highlight .stat-cell-sub { color: #fff; }
 
-  /* Progress bar */
-  .progress-wrap {
-    margin-bottom: 20px;
-    position: relative;
-  }
+  /* ---------- Progress (the route line) ---------- */
+  .progress-wrap { margin-bottom: 20px; position: relative; }
   .progress-meta {
-    display: flex;
-    justify-content: space-between;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .1em;
-    color: var(--white-dim);
-    margin-bottom: 6px;
+    display: flex; justify-content: space-between; gap: 8px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .1em;
+    color: var(--ink-dim); margin-bottom: 6px;
   }
   .progress-track {
-    height: 8px;
-    background: var(--black3);
-    border: 1px solid rgba(255,255,255,0.1);
-    position: relative;
-    overflow: hidden;
+    height: 10px;
+    background: var(--gray-tint);
+    position: relative; overflow: hidden;
+    clip-path: var(--torn-soft);
   }
-  .progress-fill {
-    height: 100%;
-    background: var(--tape);
-    position: relative;
-    transition: width .6s ease;
-  }
-  .progress-fill::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -55deg,
-      transparent, transparent 4px,
-      rgba(0,0,0,0.15) 4px, rgba(0,0,0,0.15) 8px
-    );
-  }
+  .progress-fill { height: 100%; background: var(--blue); position: relative; transition: width .6s ease; }
 
-  /* Now running card */
+  /* ---------- Now running ---------- */
   .now-card {
-    border: 3px solid var(--tape);
-    background: var(--black2);
+    border: 3px solid var(--blue);
+    background: var(--paper);
     padding: 20px;
     margin-bottom: 16px;
     position: relative;
@@ -296,599 +191,379 @@
   }
   .now-card::before {
     content: 'NOW RUNNING';
-    position: absolute;
-    top: 10px; right: 14px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 11px;
-    letter-spacing: .2em;
-    color: var(--tape);
-    opacity: .5;
+    position: absolute; top: 0; right: 0;
+    font-family: var(--mono); font-weight: 700; font-size: 9px; letter-spacing: .18em;
+    color: #fff; background: var(--ink);
+    padding: 5px 12px 5px 14px;
+    clip-path: var(--torn);
   }
   .now-runner-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px;
-    letter-spacing: .04em;
-    line-height: 1;
-    color: var(--tape);
-    margin-bottom: 4px;
+    font-family: var(--display); font-weight: 900; font-size: 56px; letter-spacing: .01em;
+    line-height: .95; color: var(--blue); margin-bottom: 6px;
   }
   .now-leg-info {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: .1em;
-    color: var(--white-dim);
-    margin-bottom: 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+    color: var(--ink-dim); margin-bottom: 14px; line-height: 1.6;
   }
-  .now-stats {
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-    gap: 12px;
-  }
+  .now-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
   .now-stat-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .12em;
-    color: var(--white-dim);
-    margin-bottom: 3px;
-    text-transform: uppercase;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .12em;
+    color: var(--ink-dim); margin-bottom: 3px; text-transform: uppercase;
   }
   .now-stat-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: .03em;
-    color: var(--white);
-    line-height: 1;
+    font-family: var(--display); font-weight: 900; font-size: 30px; letter-spacing: .01em;
+    color: var(--ink); line-height: 1;
   }
 
-  /* On deck card */
+  /* ---------- On deck ---------- */
   .deck-card {
-    border: 1px solid rgba(245,230,66,0.3);
-    background: var(--black2);
+    border: 2px solid var(--line-strong);
+    background: var(--paper);
     padding: 14px 16px;
     margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
   }
   .deck-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .14em;
-    color: var(--tape);
-    opacity: .6;
-    margin-bottom: 3px;
-    text-transform: uppercase;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
+    color: var(--ink-dim); margin-bottom: 3px; text-transform: uppercase;
   }
   .deck-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 26px;
-    letter-spacing: .04em;
-    color: var(--white);
-    line-height: 1;
+    font-family: var(--display); font-weight: 900; font-size: 28px; letter-spacing: .01em;
+    color: var(--ink); line-height: 1;
   }
-  .deck-info {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    color: var(--white-dim);
-    text-align: right;
-  }
-  .deck-info strong {
-    display: block;
-    font-size: 15px;
-    color: var(--white);
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
+  .deck-info { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); text-align: right; }
+  .deck-info strong { display: block; font-size: 15px; color: var(--ink); font-weight: 700; margin-bottom: 2px; }
 
-  /* Runner grid */
-  .runner-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 2px;
-    margin-bottom: 0;
-  }
+  /* ---------- Runner grid ---------- */
+  .runner-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
   .runner-cell {
-    background: var(--black2);
+    background: var(--paper2);
     padding: 12px 14px;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 2px solid transparent;
     position: relative;
   }
-  .runner-cell.is-next {
-    border: 2px solid var(--tape);
-  }
-  .runner-cell-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-  }
+  .runner-cell.is-next { border-color: var(--blue); background: var(--paper); }
+  .runner-cell-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .av {
-    width: 30px;
-    height: 30px;
-    border: 2px solid var(--tape);
-    background: var(--black3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 12px;
-    letter-spacing: .04em;
-    color: var(--tape);
-    flex-shrink: 0;
+    width: 30px; height: 30px;
+    border: 2px solid var(--blue);
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-weight: 900; font-size: 13px; letter-spacing: .02em;
+    color: var(--blue); flex-shrink: 0;
   }
   .runner-name-cell {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: .04em;
-    color: var(--white);
-    line-height: 1;
+    font-family: var(--display); font-weight: 900; font-size: 20px; letter-spacing: .01em;
+    color: var(--ink); line-height: 1;
   }
-  .runner-stats-cell {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    color: var(--white-dim);
-    line-height: 1.6;
-  }
-  .runner-miles-cell {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--tape);
-    font-weight: 700;
-    margin-top: 3px;
-  }
+  .runner-stats-cell { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); line-height: 1.6; }
+  .runner-miles-cell { font-family: var(--mono); font-size: 10px; color: var(--blue); font-weight: 700; margin-top: 3px; }
 
-  /* Section header — tape style */
+  /* ---------- Section header — blue tape ---------- */
   .section-head {
     display: inline-block;
-    background: var(--tape);
-    color: var(--black);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: .18em;
-    padding: 3px 12px 3px 8px;
+    background: var(--blue);
+    color: #fff;
+    font-family: var(--display); font-weight: 900;
+    font-size: 20px; letter-spacing: .06em; text-transform: uppercase;
+    line-height: 1;
+    padding: 6px 18px 5px 14px;
     margin-bottom: 12px;
-    position: relative;
-  }
-  .section-head::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -55deg, transparent, transparent 4px,
-      rgba(0,0,0,0.08) 4px, rgba(0,0,0,0.08) 8px
-    );
+    clip-path: var(--torn);
   }
 
-  /* Table */
-  .tbl-wrap {
-    border: 1px solid rgba(255,255,255,0.08);
-    overflow: hidden;
-  }
-  .tbl-scroll {
-    max-height: 440px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tbl-scroll::-webkit-scrollbar { width: 4px; }
-  .tbl-scroll::-webkit-scrollbar-track { background: var(--black2); }
-  .tbl-scroll::-webkit-scrollbar-thumb { background: var(--tape); }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-    table-layout: fixed;
-  }
+  /* ---------- Tables ---------- */
+  .tbl-wrap { border: 2px solid var(--ink); overflow: hidden; background: var(--paper); }
+  .tbl-scroll { max-height: 440px; overflow: auto; -webkit-overflow-scrolling: touch; }
+  .tbl-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+  .tbl-scroll::-webkit-scrollbar-track { background: var(--paper2); }
+  .tbl-scroll::-webkit-scrollbar-thumb { background: var(--blue); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
   thead th {
-    background: var(--black3);
-    padding: 8px 10px;
+    background: var(--ink);
+    padding: 9px 10px;
     text-align: left;
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .14em;
-    color: var(--tape);
-    text-transform: uppercase;
-    border-bottom: 2px solid var(--tape);
-    font-weight: 400;
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
+    color: #fff; text-transform: uppercase; font-weight: 400;
+    position: sticky; top: 0; z-index: 2;
   }
   tbody td {
     padding: 8px 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-family: 'DM Sans', sans-serif;
-    color: var(--white-dim);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-dim);
     vertical-align: middle;
   }
-  tbody tr:hover td { background: rgba(245,230,66,0.04); color: var(--white); }
-  tbody tr.is-current td { background: rgba(245,230,66,0.07); color: var(--white); }
-  tbody tr.is-done { opacity: .3; }
-  .pace-val {
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    color: var(--white);
-    font-size: 11px;
-  }
+  tbody tr:hover td { background: var(--blue-tint); color: var(--ink); }
+  tbody tr.is-current td { background: var(--blue-tint); color: var(--ink); }
+  tbody tr.is-current td:first-child { box-shadow: inset 4px 0 0 var(--blue); }
+  tbody tr.is-done { opacity: .35; }
+  tbody td .btn-ghost { padding: 5px 7px; min-height: 30px; font-size: 9px; letter-spacing: .04em; }
+  .pace-val { font-family: var(--mono); font-weight: 700; color: var(--ink); font-size: 11px; }
 
-  /* Tags */
+  /* ---------- Tags ---------- */
   .tag {
-    display: inline-block;
-    padding: 1px 6px;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .06em;
-    border: 1px solid;
+    display: inline-block; padding: 2px 7px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .06em; border: 1px solid;
   }
-  .tag-night { border-color: rgba(180,170,255,0.5); color: #b4aaff; background: rgba(180,170,255,0.08); }
-  .tag-heat  { border-color: rgba(232,100,64,0.5);  color: #e86440; background: rgba(232,100,64,0.08); }
-  .tag-dawn  { border-color: rgba(76,175,120,0.5);  color: #4caf78; background: rgba(76,175,120,0.08); }
-  .tag-normal{ border-color: rgba(255,255,255,0.15); color: var(--white-dim); }
+  .tag-night  { border-color: var(--ink); color: #fff; background: var(--ink); }
+  .tag-heat   { border-color: rgba(200,49,43,0.5); color: var(--red); background: rgba(200,49,43,0.06); }
+  .tag-dawn   { border-color: var(--blue-line); color: var(--blue); background: var(--blue-tint); }
+  .tag-normal { border-color: var(--line-strong); color: var(--ink-dim); }
 
-  .diff-pos { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--red); font-weight: 700; }
-  .diff-neg { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--green); font-weight: 700; }
-  .diff-ok  { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--white-dim); }
+  .diff-pos { font-family: var(--mono); font-size: 10px; color: var(--red); font-weight: 700; }
+  .diff-neg { font-family: var(--mono); font-size: 10px; color: var(--green); font-weight: 700; }
+  .diff-ok  { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); }
 
-  /* Form */
+  /* ---------- Forms ---------- */
   .form-card {
-    background: var(--black2);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--paper2);
+    border: 2px solid var(--line);
     padding: 20px;
     margin-bottom: 16px;
   }
-  .form-row {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 12px;
-    margin-bottom: 14px;
-  }
+  .form-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 14px; }
   .form-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .12em;
-    color: var(--tape);
-    text-transform: uppercase;
-    margin-bottom: 6px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .12em; font-weight: 700;
+    color: var(--blue); text-transform: uppercase; margin-bottom: 6px;
   }
   input, select {
     width: 100%;
-    background: var(--black);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--white);
-    font-family: 'Space Mono', monospace;
-    font-size: 16px;
-    padding: 11px 12px;
-    outline: none;
-    transition: border-color .2s;
-    min-height: 44px;
-    border-radius: 0;
-    -webkit-appearance: none;
-    appearance: none;
+    background: var(--paper);
+    border: 2px solid var(--line-strong);
+    color: var(--ink);
+    font-family: var(--mono); font-size: 16px;
+    padding: 10px 12px;
+    outline: none; transition: border-color .2s;
+    min-height: 44px; border-radius: 0;
+    -webkit-appearance: none; appearance: none;
   }
-  input:focus, select:focus { border-color: var(--tape); }
-  select option { background: var(--black2); }
+  select {
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+    background-size: 5px 5px; background-repeat: no-repeat;
+    padding-right: 30px;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+  select option { background: var(--paper); }
 
   .btn {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px;
-    letter-spacing: .12em;
-    padding: 12px 28px;
-    min-height: 44px;
-    background: var(--tape);
-    color: var(--black);
-    border: none;
-    cursor: pointer;
+    font-family: var(--display); font-weight: 900;
+    font-size: 20px; letter-spacing: .06em; line-height: 1;
+    padding: 12px 30px 11px;
+    min-height: 46px;
+    background: var(--blue); color: #fff;
+    border: none; cursor: pointer;
     position: relative;
-    overflow: hidden;
-    transition: opacity .15s;
+    clip-path: var(--torn);
+    transition: background .15s, transform .1s;
   }
-  .btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -55deg, transparent, transparent 4px,
-      rgba(0,0,0,0.08) 4px, rgba(0,0,0,0.08) 8px
-    );
-  }
-  .btn:hover { opacity: .88; }
+  .btn:hover { background: var(--blue-dark); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { background: var(--gray); cursor: default; }
   .btn-ghost {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: var(--white-dim);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: .1em;
-    padding: 8px 12px;
-    min-height: 36px;
-    cursor: pointer;
-    transition: all .15s;
+    background: var(--paper);
+    border: 2px solid var(--line-strong);
+    color: var(--ink-dim);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em; font-weight: 700;
+    padding: 7px 12px; min-height: 36px;
+    cursor: pointer; transition: all .15s;
   }
   .btn-ghost:hover { border-color: var(--red); color: var(--red); }
-  .btn-ghost::before { display: none; }
 
-  #log-msg {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    margin-left: 12px;
-  }
+  #log-msg { font-family: var(--mono); font-size: 11px; margin-left: 12px; }
 
   .hint-box {
-    background: rgba(245,230,66,0.06);
-    border-left: 3px solid var(--tape);
+    background: var(--blue-tint);
+    border-left: 5px solid var(--blue);
     padding: 10px 14px;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--white-dim);
-    margin-bottom: 14px;
-    line-height: 1.7;
+    font-family: var(--mono); font-size: 10px;
+    color: var(--ink-dim);
+    margin-bottom: 14px; line-height: 1.7;
   }
-  .hint-box strong { color: var(--tape); }
+  .hint-box strong { color: var(--blue); }
 
-  /* Actual summary two-col */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-bottom: 16px; }
-  .info-block {
-    background: var(--black2);
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 16px;
-  }
+  /* ---------- Actual page ---------- */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .info-block { background: var(--paper2); padding: 16px; }
   .info-block-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: .14em;
-    color: var(--tape);
-    text-transform: uppercase;
-    margin-bottom: 8px;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .14em; font-weight: 700;
+    color: var(--blue); text-transform: uppercase; margin-bottom: 8px;
   }
-  .info-block-big {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    color: var(--white);
-    line-height: 1;
-    letter-spacing: .03em;
-  }
-  .info-block-sub {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--white-dim);
-    margin-top: 4px;
-  }
+  .info-block-big { font-family: var(--display); font-weight: 900; font-size: 40px; color: var(--ink); line-height: 1; }
+  .info-block-sub { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 4px; }
   .runner-split-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--line);
   }
   .runner-split-row:last-child { border-bottom: none; }
   .runner-split-left { display: flex; align-items: center; gap: 8px; }
-  .runner-split-name { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: .04em; color: var(--white); }
-  .runner-split-right { text-align: right; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--white-dim); }
-  .runner-split-right strong { color: var(--tape); display: block; font-size: 13px; margin-bottom: 1px; }
+  .runner-split-name { font-family: var(--display); font-weight: 900; font-size: 18px; color: var(--ink); }
+  .runner-split-right { text-align: right; font-family: var(--mono); font-size: 10px; color: var(--ink-dim); }
+  .runner-split-right strong { color: var(--blue); display: block; font-size: 13px; margin-bottom: 1px; }
 
-  /* Empty state */
+  /* ---------- Empty state ---------- */
   .empty {
-    text-align: center;
-    padding: 48px 20px;
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--white-dim);
-    letter-spacing: .08em;
-    border: 1px dashed rgba(255,255,255,0.1);
+    text-align: center; padding: 48px 20px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: .06em;
+    border: 2px dashed var(--line-strong);
   }
   .empty-big {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: .08em;
-    color: rgba(255,255,255,0.12);
-    margin-bottom: 8px;
+    font-family: var(--display); font-weight: 900; font-size: 34px; letter-spacing: .04em;
+    color: var(--gray); margin-bottom: 8px;
   }
 
-  /* Mobile tweaks */
+  /* ---------- Sync status bar ---------- */
+  .sync-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 24px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+    color: var(--ink-dim);
+  }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); flex-shrink: 0; }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.syncing { background: var(--blue); animation: pulse 1s infinite; }
+  .sync-dot.err { background: var(--red); }
+  .sync-status button {
+    margin-left: auto;
+    background: var(--paper); border: 2px solid var(--line-strong); color: var(--ink-dim);
+    font-family: var(--mono); font-size: 9px; letter-spacing: .08em; font-weight: 700;
+    padding: 4px 10px; min-height: 30px; cursor: pointer;
+  }
+  .sync-status button:active { border-color: var(--blue); color: var(--blue); }
+
+  /* ---------- Mobile ---------- */
   @media (max-width: 600px) {
     .stat-grid { grid-template-columns: repeat(2,1fr); }
     .runner-grid { grid-template-columns: repeat(2,1fr); }
     .form-row { grid-template-columns: 1fr; }
     .two-col { grid-template-columns: 1fr; }
-    .now-runner-name { font-size: 38px; }
-    .stat-cell-val { font-size: 22px; }
+    .now-runner-name { font-size: 44px; }
+    .stat-cell-val { font-size: 26px; }
     .page { padding: 16px; }
     .header-meta { display: none; }
-    .header-logo { padding: 12px 16px; }
-    .header-title { font-size: 22px; }
-    .sync-status { padding: 10px 16px !important; }
+    .header-inner { padding: 10px 16px 8px; }
+    .header-logo img { height: 50px; }
+    .sync-status { padding: 8px 16px; }
+    nav button { font-size: 9px; letter-spacing: .04em; padding: 12px 2px 10px; }
   }
-
-  /* Sync status bar */
-  .sync-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 24px;
-    background: var(--black2);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .08em;
-    color: var(--white-dim);
-  }
-  .sync-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--gray);
-    flex-shrink: 0;
-  }
-  .sync-dot.ok { background: var(--green); }
-  .sync-dot.syncing { background: var(--tape); animation: pulse 1s infinite; }
-  .sync-dot.err { background: var(--red); }
-  .sync-status button {
-    margin-left: auto;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--white-dim);
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: .08em;
-    padding: 5px 10px;
-    min-height: 30px;
-    cursor: pointer;
-  }
-  .sync-status button:active { border-color: var(--tape); color: var(--tape); }
 
   /* ============ LOGISTICS ============ */
-  @media (max-width: 600px) {
-    nav button { font-size: 9px; letter-spacing: .05em; padding: 12px 2px 10px; }
-  }
   .countdown {
-    border: 3px solid var(--tape);
-    background: var(--black2);
-    padding: 18px 20px;
-    margin-bottom: 18px;
-    position: relative;
-    overflow: hidden;
-  }
-  .countdown-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px; letter-spacing: .16em;
-    color: var(--tape); opacity: .8;
-    margin-bottom: 6px;
-  }
-  .countdown-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 54px; letter-spacing: .04em; line-height: 1;
-    color: var(--white);
-  }
-  .countdown-val span { font-size: 22px; color: var(--tape); margin: 0 10px 0 2px; }
-  .countdown-sub {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px; letter-spacing: .1em;
-    color: var(--white-dim); margin-top: 8px;
-  }
-  .logi-toolbar {
-    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    background: var(--blue);
+    color: #fff;
+    padding: 20px 22px 18px;
     margin-bottom: 14px;
+    position: relative; overflow: hidden;
+    clip-path: var(--torn-soft);
   }
+  .countdown-label { font-family: var(--mono); font-size: 9px; letter-spacing: .18em; font-weight: 700; opacity: .85; margin-bottom: 4px; }
+  .countdown-val {
+    font-family: var(--display); font-weight: 900;
+    font-size: 64px; letter-spacing: .01em; line-height: 1;
+  }
+  .countdown-val span { font-size: 26px; color: rgba(255,255,255,0.65); margin: 0 12px 0 3px; }
+  .countdown-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; opacity: .85; margin-top: 8px; line-height: 1.6; }
+  .countdown .btn { background: #fff; color: var(--blue); }
+  .countdown.live { background: var(--ink); }
+  .countdown-mark { position: absolute; right: 18px; top: 50%; transform: translateY(-50%) rotate(-4deg); height: 70%; opacity: .95; }
+
+  .logi-toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
   .chip {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px; letter-spacing: .08em;
-    padding: 7px 11px; min-height: 34px;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--white-dim);
-    cursor: pointer;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .06em; font-weight: 700;
+    padding: 6px 11px; min-height: 34px;
+    background: var(--paper); border: 2px solid var(--line-strong);
+    color: var(--ink-dim); cursor: pointer;
   }
-  .chip.on { border-color: var(--tape); color: var(--black); background: var(--tape); }
-  .logi-toolbar select { width: auto; min-height: 34px; font-size: 12px; padding: 6px 30px 6px 10px; }
+  .chip.on { border-color: var(--ink); color: #fff; background: var(--ink); }
+  .logi-toolbar select { width: auto; min-height: 34px; font-size: 12px; padding: 5px 30px 5px 10px; }
   .logi-day {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 15px; letter-spacing: .16em;
-    color: var(--white-dim);
-    margin: 18px 0 8px;
+    font-family: var(--display); font-weight: 900; font-size: 20px; letter-spacing: .06em;
+    color: var(--ink); margin: 22px 0 8px;
     display: flex; align-items: center; gap: 10px;
   }
-  .logi-day::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+  .logi-day::after { content: ''; flex: 1; height: 6px; background: var(--gray-tint); clip-path: var(--torn-soft); }
   .logi-card {
-    background: var(--black2);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-left: 4px solid var(--gray);
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-left: 6px solid var(--gray);
     padding: 14px 16px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
-  .logi-card.is-next { border-color: var(--tape-border); border-left-color: var(--tape); }
-  .logi-card.is-past { opacity: .45; }
+  .logi-card.is-next { border-color: var(--blue); border-left-color: var(--blue); box-shadow: 4px 4px 0 var(--blue-tint); }
+  .logi-card.is-past { opacity: .5; }
   .logi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .logi-type {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px; letter-spacing: .12em;
-    margin-bottom: 4px;
-  }
-  .logi-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px; letter-spacing: .03em; line-height: 1.05;
-    color: var(--white);
-  }
-  .logi-time {
-    font-family: 'Space Mono', monospace;
-    font-size: 12px; color: var(--white);
-    text-align: right; white-space: nowrap;
-  }
-  .logi-time small { display: block; font-size: 9px; color: var(--white-dim); letter-spacing: .08em; }
-  .logi-meta {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px; color: var(--white-dim);
-    line-height: 1.7; margin-top: 8px;
-    word-break: break-word;
-  }
-  .logi-meta b { color: var(--tape); font-weight: 400; letter-spacing: .1em; font-size: 9px; margin-right: 6px; }
-  .logi-notes {
-    font-size: 13px; color: var(--white-dim);
-    margin-top: 8px; white-space: pre-wrap; line-height: 1.5;
-  }
+  .logi-type { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; font-weight: 700; margin-bottom: 4px; }
+  .logi-title { font-family: var(--display); font-weight: 900; font-size: 26px; letter-spacing: .01em; line-height: 1.05; color: var(--ink); }
+  .logi-time { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); text-align: right; white-space: nowrap; }
+  .logi-time small { display: block; font-size: 9px; font-weight: 400; color: var(--ink-dim); letter-spacing: .08em; }
+  .logi-meta { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); line-height: 1.8; margin-top: 8px; word-break: break-word; }
+  .logi-meta b { color: var(--blue); font-weight: 700; letter-spacing: .1em; font-size: 9px; margin-right: 6px; }
+  .logi-notes { font-size: 13px; color: var(--ink-dim); margin-top: 8px; white-space: pre-wrap; line-height: 1.5; }
   .who-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-  .who-chip {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px; letter-spacing: .06em;
-    padding: 2px 7px; border: 1px solid;
-  }
-  button.who-chip {
-    background: transparent; cursor: pointer;
-    font-size: 11px; padding: 6px 9px; min-height: 32px;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  button.who-chip .mark {
-    width: 14px; height: 14px; border: 1px solid currentColor;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 10px; line-height: 1; opacity: .7;
-  }
-  button.who-chip.ok { background: rgba(76,175,120,0.14); border-color: var(--green) !important; color: var(--white) !important; }
-  button.who-chip.ok .mark { background: var(--green); border-color: var(--green); color: var(--black); opacity: 1; font-weight: 700; }
-  button.who-chip:disabled { opacity: .5; }
-  .confirm-count {
-    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .12em;
-    color: var(--white-dim); margin-top: 12px;
-  }
-  .confirm-count.all { color: var(--green); }
-  .crew-line { margin: -4px 0 22px; }
-  .crew-line .confirm-count { margin-top: 0; }
+  .who-chip { font-family: var(--mono); font-size: 9px; letter-spacing: .04em; font-weight: 700; padding: 2px 7px; border: 2px solid; }
   .logi-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
   .logi-actions .btn-ghost { min-height: 32px; padding: 6px 10px; font-size: 9px; }
-  .logi-actions .btn-ghost.accent { border-color: var(--tape-border); color: var(--tape); }
-  .logi-actions .btn-ghost.accent:hover { border-color: var(--tape); color: var(--tape); }
+  .logi-actions .btn-ghost.accent { border-color: var(--blue-line); color: var(--blue); }
+  .logi-actions .btn-ghost.accent:hover { border-color: var(--blue); color: var(--blue); }
   .conf-btn {
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    background: var(--tape-dim); border: 1px dashed var(--tape-border);
-    color: var(--white); padding: 1px 8px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: var(--blue-tint); border: 1px dashed var(--blue-line);
+    color: var(--ink); padding: 1px 8px; cursor: pointer;
   }
   .logi-form textarea {
     width: 100%; min-height: 80px; resize: vertical;
-    background: var(--black); border: 1px solid rgba(255,255,255,0.15);
-    color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 16px;
+    background: var(--paper); border: 2px solid var(--line-strong);
+    color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 16px;
     padding: 10px 12px; outline: none; border-radius: 0;
   }
-  .logi-form textarea:focus { border-color: var(--tape); }
   .logi-form input[type="datetime-local"] { min-width: 0; }
   .logi-form .form-row.two { grid-template-columns: 1fr 1fr; }
   .logi-form .form-row.one { grid-template-columns: 1fr; }
   .who-pick { display: flex; flex-wrap: wrap; gap: 6px; }
   .who-pick label {
-    font-family: 'Space Mono', monospace; font-size: 11px;
-    border: 1px solid rgba(255,255,255,0.15);
-    padding: 8px 10px; cursor: pointer; user-select: none;
-    color: var(--white-dim);
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    border: 2px solid var(--line-strong); background: var(--paper);
+    padding: 7px 10px; cursor: pointer; user-select: none; color: var(--ink-dim);
   }
   .who-pick input { display: none; }
-  .who-pick label.on { border-color: var(--tape); color: var(--tape); background: var(--tape-dim); }
-  @media (max-width: 600px) { .logi-form .form-row.two { grid-template-columns: 1fr; } .countdown-val { font-size: 42px; } }
-  #logi-msg { font-family: 'Space Mono', monospace; font-size: 11px; margin-left: 12px; }
+  .who-pick label.on { border-color: var(--blue); color: #fff; background: var(--blue); }
+  #logi-msg { font-family: var(--mono); font-size: 11px; margin-left: 12px; }
   .past-toggle { width: 100%; margin-top: 14px; }
+  @media (max-width: 600px) {
+    .logi-form .form-row.two { grid-template-columns: 1fr; }
+    .countdown-val { font-size: 46px; }
+    .countdown-val span { font-size: 20px; margin-right: 8px; }
+    .countdown-mark { display: none; }
+  }
+
+  /* Crew "going" line */
+  .crew-line { margin: 0 0 22px; }
+  .confirm-count { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; font-weight: 700; color: var(--ink-dim); }
+  .confirm-count.all { color: var(--green); }
+  button.who-chip {
+    background: var(--paper); cursor: pointer;
+    font-size: 11px; padding: 6px 10px; min-height: 34px;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  button.who-chip .mark {
+    width: 14px; height: 14px; border: 2px solid currentColor;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; line-height: 1;
+  }
+  button.who-chip.ok { background: var(--blue) !important; border-color: var(--blue) !important; color: #fff !important; }
+  button.who-chip.ok .mark { background: #fff; border-color: #fff; color: var(--blue); font-weight: 700; }
+
+  .site-foot { text-align: center; padding: 34px 0 10px; }
+  .site-foot img { height: 60px; width: auto; opacity: .9; }
 </style>
+
 </head>
 <body>
 
 <header class="header">
   <div class="header-inner">
     <div class="header-logo">
-      <div class="header-title">THE SPEED PROJECT</div>
-      <div class="header-sub">RACE OPERATIONS HQ — LA → LV</div>
+      <img src="img/logo-tsp.png" alt="TSP — The Speed Project, LA to LV">
     </div>
     <div class="header-meta">
       <div class="header-meta-label">START</div>
@@ -963,8 +638,18 @@ const DEFAULT_SUPPORT = [
   {name:'Support 2', fullName:'Support 2', init:'S2', color:'#888888'},
 ];
 
-let RUNNERS = DEFAULT_RUNNERS.map(r=>({...r}));
-let SUPPORT = DEFAULT_SUPPORT.map(r=>({...r}));
+// Sheet colors were picked for a dark screen; darken any that are too light to read on white.
+function readableColor(hex){
+  const m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'').trim());
+  if(!m) return '#5f5f5f';
+  let [r,g,b]=[0,2,4].map(i=>parseInt(m[1].substr(i,2),16));
+  const lum=(R,G,B)=>{const f=c=>{c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);};return 0.2126*f(R)+0.7152*f(G)+0.0722*f(B);};
+  let guard=0;
+  while((1.05/(lum(r,g,b)+0.05))<3.2 && guard++<40){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+  return '#'+[r,g,b].map(c=>c.toString(16).padStart(2,'0')).join('');
+}
+let RUNNERS = DEFAULT_RUNNERS.map(r=>({...r, color:readableColor(r.color)}));
+let SUPPORT = DEFAULT_SUPPORT.map(r=>({...r, color:readableColor(r.color)}));
 let RUNNER_COLORS = {};
 RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
 let ALL_PEOPLE = [...RUNNERS, ...SUPPORT];
@@ -1094,7 +779,7 @@ function fmtDur(mins){
   return h>0?h+'h '+(mm<10?'0':'')+mm+'m':mm+'m';
 }
 function fmtClock(startHour,elapsedMins){
-  const tot=startHour*60+elapsedMins,h=Math.floor(tot/60)%24,m=Math.round(tot%60);
+  const tot=Math.round(startHour*60+elapsedMins),h=Math.floor(tot/60)%24,m=tot%60;
   return ((h%12)||12)+':'+(m<10?'0':'')+m+(h>=12?'pm':'am');
 }
 function dayLabel(e){return e<1440?'Day 1':e<2880?'Day 2':'Day 3';}
@@ -1285,7 +970,7 @@ function applyRoster(rows){
       name:def.name, // rotation code never changes
       fullName:s.fullName||def.fullName,
       init:s.init||def.init,
-      color:s.color||def.color,
+      color:readableColor(s.color||def.color),
       base10k:(s.pace10kSecPerMi!=null)?s.pace10kSecPerMi:def.base10k
     };
   });
@@ -1296,8 +981,8 @@ function applyRoster(rows){
   const rotationCodes=DEFAULT_RUNNERS.map(r=>r.name);
   const extras=rows.filter(r=>r.isSupport || !rotationCodes.includes(r.code));
   SUPPORT = extras.length ? extras.map(s=>({
-    name:s.code, fullName:s.fullName||s.code, init:s.init||s.code, color:s.color||'#888888'
-  })) : DEFAULT_SUPPORT.map(r=>({...r}));
+    name:s.code, fullName:s.fullName||s.code, init:s.init||s.code, color:readableColor(s.color||'#888888')
+  })) : DEFAULT_SUPPORT.map(r=>({...r, color:readableColor(r.color)}));
 
   RUNNER_COLORS={};
   RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
@@ -1565,19 +1250,19 @@ function renderDash(){
   </div>
   <div class="progress-wrap" style="margin-top:-12px">
     <div class="progress-meta">
-      <span style="color:var(--tape);opacity:.7">▲ ELEVATION</span>
+      <span style="color:var(--blue);opacity:.7">▲ ELEVATION</span>
       <span>${elevProgress}% — ${actGain.toLocaleString()} ft climbed</span>
       <span style="opacity:.5">${getTotalGainFt().toLocaleString()} ft total</span>
     </div>
-    <div class="progress-track" style="height:5px;border-color:rgba(245,230,66,0.2)">
-      <div class="progress-fill" style="width:${elevProgress}%;background:linear-gradient(90deg,var(--tape-dark),var(--tape))"></div>
+    <div class="progress-track" style="height:5px;border-color:var(--blue-line)">
+      <div class="progress-fill" style="width:${elevProgress}%;background:linear-gradient(90deg,var(--blue-dark),var(--blue))"></div>
     </div>
   </div>`;
 
   if(nextEff){
-    const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--tape)';
+    const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--blue)';
     html+=`<div class="now-card" style="border-color:${nColor}">
-      <div class="now-runner-name" style="color:${nColor}">${nextEff.runner.fullName}${nextEff.overridden?' <span style="font-size:11px;letter-spacing:.1em;color:var(--tape);opacity:.7;font-family:\'Space Mono\',monospace">· ADJUSTED</span>':''}</div>
+      <div class="now-runner-name" style="color:${nColor}">${nextEff.runner.fullName}${nextEff.overridden?' <span style="font-size:11px;letter-spacing:.1em;color:var(--blue);opacity:.7;font-family:var(--mono)">· ADJUSTED</span>':''}</div>
       <div class="now-leg-info">LEG ${done+1} &nbsp;&bull;&nbsp; MILE ${Math.round(nextEff.startMile*10)/10} &ndash; ${Math.round((nextEff.startMile+nextEff.miles)*10)/10} &nbsp;&bull;&nbsp; ${Math.round(nextEff.miles*10)/10} MI &nbsp;&bull;&nbsp; ▲${nextEff.gainFt}ft &nbsp;&bull;&nbsp; ${nextEff.condition.toUpperCase()}</div>
       <div class="now-stats">
         <div><div class="now-stat-label">Proj Pace</div><div class="now-stat-val">${fmtPace(nextEff.pace)}<span style="font-size:13px;opacity:.5">/mi</span></div></div>
@@ -1585,7 +1270,7 @@ function renderDash(){
         <div><div class="now-stat-label">Est Handoff</div><div class="now-stat-val" style="font-size:22px">${nextEff.dur?fmtClock(START_HOUR,actElapsed+nextEff.dur):'--'}</div></div>
       </div>
       <button class="btn-ghost" style="margin-top:14px" onclick="toggleAdjust('next')">✎ ADJUST RUNNER / DISTANCE</button>
-      <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+      <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
             <select id="adjust-next-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
@@ -1595,7 +1280,7 @@ function renderDash(){
           </div>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn-ghost" style="border-color:var(--tape);color:var(--tape)" onclick="saveOverrideUI('next',${done+1})">SAVE</button>
+          <button class="btn-ghost" style="border-color:var(--blue);color:var(--blue)" onclick="saveOverrideUI('next',${done+1})">SAVE</button>
           ${nextEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+1})">RESET TO PLAN</button>`:''}
         </div>
       </div>
@@ -1605,7 +1290,7 @@ function renderDash(){
   }
 
   if(onDeckEff){
-    const odColor=RUNNER_COLORS[onDeckEff.runner.name]||'var(--tape)';
+    const odColor=RUNNER_COLORS[onDeckEff.runner.name]||'var(--blue)';
     html+=`<div class="deck-card" style="border-color:${odColor}40;flex-wrap:wrap;gap:10px">
       <div>
         <div class="deck-label" style="color:${odColor}">On Deck — Leg ${done+2}${onDeckEff.overridden?' · ADJUSTED':''}</div>
@@ -1616,7 +1301,7 @@ function renderDash(){
         ${Math.round(onDeckEff.miles*10)/10} mi &bull; ${fmtDur(onDeckEff.dur)} est
       </div>
       <button class="btn-ghost" style="width:100%" onclick="toggleAdjust('deck')">✎ ADJUST</button>
-      <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08)">
+      <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
             <select id="adjust-deck-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
@@ -1626,7 +1311,7 @@ function renderDash(){
           </div>
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn-ghost" style="border-color:var(--tape);color:var(--tape)" onclick="saveOverrideUI('deck',${done+2})">SAVE</button>
+          <button class="btn-ghost" style="border-color:var(--blue);color:var(--blue)" onclick="saveOverrideUI('deck',${done+2})">SAVE</button>
           ${onDeckEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+2})">RESET TO PLAN</button>`:''}
         </div>
       </div>
@@ -1643,7 +1328,7 @@ function renderDash(){
       const actGainR=rl.reduce((a,l)=>a+(l.gainFt||0),0);
       const ap=getRunnerActualPace(r.name);
       const isNext=nextEff&&nextEff.runner.name===r.name;
-      const rColor=RUNNER_COLORS[r.name]||'var(--tape)';
+      const rColor=RUNNER_COLORS[r.name]||'var(--blue)';
       return `<div class="runner-cell${isNext?' is-next':''}" style="${isNext?'border-color:'+rColor:''}">
         <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${r.init}</div><div class="runner-name-cell" style="color:${rColor}">${r.fullName}</div></div>
         <div class="runner-miles-cell" style="color:${rColor}">${Math.round(actMi*10)/10} / ${Math.round(projTotalMi*10)/10} mi</div>
@@ -1654,7 +1339,7 @@ function renderDash(){
 
   if(lastLeg){
     const lastR=RUNNERS.find(r=>r.name===lastLeg.runner)||{fullName:lastLeg.runner};
-    html+=`<div style="text-align:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:rgba(240,237,228,.3)">LAST LOGGED: ${lastR.fullName.toUpperCase()} &bull; ${lastLeg.miles} MI &bull; ${fmtDur(lastLeg.dur)} &bull; ${fmtPace(lastLeg.dur/parseFloat(lastLeg.miles)*60)}/MI</div>`;
+    html+=`<div style="text-align:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--ink-faint)">LAST LOGGED: ${lastR.fullName.toUpperCase()} &bull; ${lastLeg.miles} MI &bull; ${fmtDur(lastLeg.dur)} &bull; ${fmtPace(lastLeg.dur/parseFloat(lastLeg.miles)*60)}/MI</div>`;
   }
 
   el.innerHTML=html;
@@ -1668,21 +1353,21 @@ function renderProjected(){
   const rows=SCHEDULE.map((leg,i)=>{
     const isDone=i<done, isCur=i===done;
     const tag=`<span class="tag tag-${leg.condition.toLowerCase()}">${leg.condition}</span>`;
-    const rColor=RUNNER_COLORS[leg.runner.name]||'var(--tape)';
-    const rowBg=isCur?'rgba(245,230,66,0.07)':isDone?'':'';
+    const rColor=RUNNER_COLORS[leg.runner.name]||'var(--blue)';
+    const rowBg=isCur?'var(--blue-tint)':isDone?'':'';
     return `<tr class="${isDone?'is-done':isCur?'is-current':''}" style="${rowBg?'background:'+rowBg:''}">
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(240,237,228,.35)">${leg.legNum}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${leg.legNum}</td>
       <td><div style="display:flex;align-items:center;gap:7px">
         <div class="av" style="width:24px;height:24px;font-size:10px;border-color:${rColor};color:${rColor}">${leg.runner.init}</div>
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;color:${rColor}">${leg.runner.init}</span>
+        <span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:${rColor}">${leg.runner.init}</span>
       </div></td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtClock(START_HOUR,leg.elapsedStart)}</td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${leg.startMile}</td>
-      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.04em;color:var(--tape)">${leg.miles} mi</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:${leg.gainFt>400?'#e86440':leg.gainFt>150?'#f5e642':'rgba(240,237,228,.5)'}">▲${leg.gainFt}</td>
+      <td style="font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:.04em;color:var(--blue)">${leg.miles} mi</td>
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:${leg.gainFt>400?'var(--red)':leg.gainFt>150?'var(--blue)':'var(--ink-dim)'}">▲${leg.gainFt}</td>
       <td class="pace-val">${fmtPace(leg.pace)}/mi</td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(leg.dur)}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(240,237,228,.35)">${dayLabel(leg.elapsedStart)}</td>
+      <td style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-faint)">${dayLabel(leg.elapsedStart)}</td>
       <td>${tag}</td>
     </tr>`;
   }).join('');
@@ -1698,7 +1383,7 @@ function renderProjected(){
     <span class="tag tag-night">NIGHT — faster</span>
     <span class="tag tag-heat">HEAT — slower</span>
     <span class="tag tag-dawn">DAWN</span>
-    <span style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(240,237,228,.4);align-self:center">Short legs run faster · Elevation penalty baked in (${getTotalGainFt().toLocaleString()}ft gain)</span>
+    <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-faint);align-self:center">Short legs run faster · Elevation penalty baked in (${getTotalGainFt().toLocaleString()}ft gain)</span>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     ${RUNNERS.map(r=>`<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 9px;border:1px solid ${RUNNER_COLORS[r.name]};color:${RUNNER_COLORS[r.name]};background:${RUNNER_COLORS[r.name]}18">${r.name}</span>`).join('')}
@@ -1709,7 +1394,7 @@ function renderProjected(){
       <th style="width:44px">Mile</th><th style="width:56px">Leg</th>
       <th style="width:52px">Gain</th>
       <th style="width:72px">Pace</th><th style="width:56px">Time</th>
-      <th style="width:44px">Day</th><th>Cond</th>
+      <th style="width:58px">Day</th><th>Cond</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div></div>`;
@@ -1726,7 +1411,7 @@ function renderLog(){
   let html=`<div class="section-head">Log Completed Leg</div>`;
 
   if(nextEff){
-    html+=`<div class="hint-box">Next projected: <strong>${nextEff.runner.fullName}</strong> &bull; ${Math.round(nextEff.miles*10)/10} mi &bull; <strong>${fmtPace(nextEff.pace)}/mi</strong> projected &bull; Leg ${done+1}${nextEff.overridden?' &bull; <span style="color:var(--tape)">ADJUSTED</span>':''}</div>`;
+    html+=`<div class="hint-box">Next projected: <strong>${nextEff.runner.fullName}</strong> &bull; ${Math.round(nextEff.miles*10)/10} mi &bull; <strong>${fmtPace(nextEff.pace)}/mi</strong> projected &bull; Leg ${done+1}${nextEff.overridden?' &bull; <span style="color:var(--blue)">ADJUSTED</span>':''}</div>`;
   }
 
   html+=`<div class="form-card">
@@ -1752,17 +1437,17 @@ function renderLog(){
       <div class="section-head">Recent Legs</div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
         <button class="btn-ghost" onclick="clearLast()">CLEAR LAST</button>
-        <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(232,64,64,0.4);color:var(--red)">CLEAR ALL</button>
+        <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(200,49,43,0.4);color:var(--red)">CLEAR ALL</button>
       </div>
     </div>
     <div class="tbl-wrap"><div class="tbl-scroll" style="max-height:280px"><table>
-      <thead><tr><th style="width:28px">#</th><th>Runner</th><th style="width:50px">Miles</th><th style="width:60px">Time</th><th style="width:72px">Pace</th><th style="width:64px"></th></tr></thead>
+      <thead><tr><th style="width:28px">#</th><th>Runner</th><th style="width:50px">Miles</th><th style="width:60px">Time</th><th style="width:72px">Pace</th><th style="width:76px"></th></tr></thead>
       <tbody>${actualLegs.slice().reverse().slice(0,10).map((l,ri)=>{
         const idx=actualLegs.length-1-ri;
         const av=ALL_PEOPLE.find(p=>p.name===l.runner)||{init:'?'};
         return `<tr>
-          <td style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(240,237,228,.35)">${idx+1}</td>
-          <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;color:var(--white)">${av.init}</span></div></td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${idx+1}</td>
+          <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
           <td style="font-family:'Space Mono',monospace;font-size:10px">${l.miles}</td>
           <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(l.dur)}</td>
           <td class="pace-val">${fmtPace(l.dur/parseFloat(l.miles)*60)}/mi</td>
@@ -1795,7 +1480,7 @@ async function submitLeg(){
     msg.textContent=' ← connect your Google Sheet first'; msg.style.color='var(--red)'; return;
   }
   if(btn) btn.disabled=true;
-  msg.textContent=' saving…'; msg.style.color='var(--white-dim)';
+  msg.textContent=' saving…'; msg.style.color='var(--ink-dim)';
   const gainFt=effectiveGain(getActualMiles(), miles, 0, miles) || 0;
   try{
     const result=await postToSheet({action:'add', runner, miles, dur, gainFt});
@@ -1849,8 +1534,8 @@ function renderActual(){
     elapsed+=l.dur;
     const av=ALL_PEOPLE.find(p=>p.name===l.runner)||{init:'?'};
     return `<tr>
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(240,237,228,.35)">${i+1}</td>
-      <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:.04em;color:var(--white)">${av.init}</span></div></td>
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${clock}</td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${l.miles}</td>
       <td class="pace-val">${fmtPace(pace)}/mi</td>
@@ -1880,7 +1565,7 @@ function renderActual(){
   <div class="two-col">
     <div class="info-block">
       <div class="info-block-label">Runner Splits</div>
-      ${runnerSplits||'<div style="font-family:Space Mono,monospace;font-size:10px;color:rgba(240,237,228,.35)">No data</div>'}
+      ${runnerSplits||'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--ink-faint)">No data</div>'}
     </div>
     <div class="info-block">
       <div class="info-block-label">Updated Proj. Finish</div>
@@ -1917,12 +1602,12 @@ let logiEditingId = null;
 let lastLandMode = null;
 
 const LOGI_TYPES = [
-  {key:'Flight',     color:'#7eb8f7', startLbl:'Departs',  endLbl:'Arrives',   titlePh:'e.g. Southwest 1234',          locPh:'e.g. IND → LAX'},
-  {key:'Hotel',      color:'#c97ff5', startLbl:'Check-in', endLbl:'Check-out', titlePh:'e.g. Hampton Inn Santa Monica',  locPh:'Address'},
-  {key:'Rental Car', color:'#f7a05a', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Enterprise — minivan',      locPh:'Pickup location'},
-  {key:'RV / Van',   color:'#a8e06a', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Cruise America 30ft',       locPh:'Pickup location'},
-  {key:'Meal',       color:'#f76f6f', startLbl:'Time',     endLbl:'Ends',      titlePh:'e.g. Team dinner',               locPh:'Restaurant / address'},
-  {key:'Other',      color:'#f5e642', startLbl:'Starts',   endLbl:'Ends',      titlePh:'e.g. Packet pickup',             locPh:'Location'},
+  {key:'Flight',     color:'#125db9', startLbl:'Departs',  endLbl:'Arrives',   titlePh:'e.g. Southwest 1234',          locPh:'e.g. IND → LAX'},
+  {key:'Hotel',      color:'#000000', startLbl:'Check-in', endLbl:'Check-out', titlePh:'e.g. Hampton Inn Santa Monica',  locPh:'Address'},
+  {key:'Rental Car', color:'#8f8f8f', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Enterprise — minivan',      locPh:'Pickup location'},
+  {key:'RV / Van',   color:'#0b4389', startLbl:'Pickup',   endLbl:'Return',    titlePh:'e.g. Cruise America 30ft',       locPh:'Pickup location'},
+  {key:'Meal',       color:'#c8312b', startLbl:'Time',     endLbl:'Ends',      titlePh:'e.g. Team dinner',               locPh:'Restaurant / address'},
+  {key:'Other',      color:'#5f5f5f', startLbl:'Starts',   endLbl:'Ends',      titlePh:'e.g. Packet pickup',             locPh:'Location'},
 ];
 function logiType(k){ return LOGI_TYPES.find(t=>t.key===k) || LOGI_TYPES[LOGI_TYPES.length-1]; }
 
@@ -2091,7 +1776,7 @@ async function toggleGoing(btn){
 }
 function whoList(it){ return String(it.who||'').split(',').map(x=>x.trim()).filter(Boolean); }
 function personFor(code){
-  if(code==='TEAM') return {name:'TEAM', fullName:'Whole team', color:'#f5e642'};
+  if(code==='TEAM') return {name:'TEAM', fullName:'Whole team', color:'#125db9'};
   return ALL_PEOPLE.find(p=>p.name===code) || {name:code, fullName:code, color:'#888888'};
 }
 
@@ -2105,8 +1790,8 @@ function countdownHTML(){
   }
   const startTxt=fmtPT(RACE_CFG.raceStart,{weekday:'short',month:'short',day:'numeric'}).toUpperCase()+' · '+fmtPT(RACE_CFG.raceStart,{hour:'numeric',minute:'2-digit'}).toUpperCase()+' PT';
   if(mode==='race'){
-    return `<div class="countdown" style="border-color:var(--green)">
-      <div class="countdown-label" style="color:var(--green)">● RACE WEEKEND IS LIVE</div>
+    return `<div class="countdown live">
+      <div class="countdown-label">● RACE WEEKEND IS LIVE</div>
       <div class="countdown-val">LA <span>→</span>LV</div>
       <div class="countdown-sub">START ${startTxt}</div>
       <button class="btn" style="margin-top:14px" onclick="goPage('dash')">OPEN TRACKER</button>
@@ -2122,7 +1807,7 @@ function countdownHTML(){
   return `<div class="countdown">
     <div class="countdown-label">RACE STARTS IN</div>
     <div class="countdown-val" id="countdown-val">${countdownText()}</div>
-    <div class="countdown-sub">${startTxt} · TRACKER OPENS ${fmtPT(RACE_CFG.trackerOpens,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()}</div>
+    <div class="countdown-sub">${startTxt}<br>TRACKER OPENS ${fmtPT(RACE_CFG.trackerOpens,{weekday:'short',hour:'numeric',minute:'2-digit'}).toUpperCase()}</div>
   </div>`;
 }
 function countdownText(){
@@ -2157,7 +1842,8 @@ function renderLogistics(){
         ${ALL_PEOPLE.map(p=>`<option value="${esc(p.name)}"${logiFilterWho===p.name?' selected':''}>${esc(p.fullName)}</option>`).join('')}
       </select>
     </div>
-    <div id="logi-list"></div>`;
+    <div id="logi-list"></div>
+    <div class="site-foot"><img src="img/logo-long.png" alt="The Speed Project"></div>`;
   if(logiFormOpen) renderLogiForm();
   renderLogiList();
 }
@@ -2247,7 +1933,7 @@ function logiCard(it, isNext, isPast){
   return `<div class="logi-card${isNext?' is-next':''}${isPast?' is-past':''}" style="border-left-color:${t.color}">
     <div class="logi-top">
       <div style="min-width:0">
-        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?' · <span style="color:var(--tape)">NEXT UP</span>':''}</div>
+        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?' · <span style="color:var(--blue)">NEXT UP</span>':''}</div>
         <div class="logi-title">${esc(it.title||'(untitled)')}</div>
       </div>
       <div class="logi-time">${timeHTML}</div>
@@ -2262,7 +1948,7 @@ function logiCard(it, isNext, isPast){
     <div class="logi-actions">
       ${link?`<a class="btn-ghost accent" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">OPEN LINK ↗</a>`:''}
       ${mapsLink?`<a class="btn-ghost accent" href="${mapsLink}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">MAP ↗</a>`:''}
-      <button class="btn-ghost" style="border-color:rgba(255,255,255,0.2)" onclick="openLogiForm('${esc(it.id)}')">EDIT</button>
+      <button class="btn-ghost" style="border-color:var(--line-strong)" onclick="openLogiForm('${esc(it.id)}')">EDIT</button>
       <button class="btn-ghost" onclick="deleteLogi('${esc(it.id)}')">DELETE</button>
     </div>
   </div>`;
@@ -2373,7 +2059,7 @@ async function saveLogi(){
   };
   if(!item.title){ msg.textContent=' ← add a title'; msg.style.color='var(--red)'; return; }
   if(item.start && item.end && item.end<item.start){ msg.textContent=' ← end is before start'; msg.style.color='var(--red)'; return; }
-  btn.disabled=true; msg.textContent=' saving…'; msg.style.color='var(--white-dim)';
+  btn.disabled=true; msg.textContent=' saving…'; msg.style.color='var(--ink-dim)';
   try{
     await postLogi({action:'save', item});
     closeLogiForm();
