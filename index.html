@@ -640,7 +640,7 @@
 let START_HOUR = 4;
 // Route: TSP v2.0 — Santa Monica → Las Vegas
 // KML-derived: 290.9 mi · 23,657 ft gain · 21,499 ft loss
-// Strict rotation: EK → DC → BA → DJ → LM → JH (every 6 legs, no reordering)
+// Strict rotation: EK → DC → BA → DJ → LM → LC (every 6 legs, no reordering)
 let TOTAL_MILES = 290.9;
 // Elevation total is derived from ROUTE_PROFILE once it loads (falls back
 // to this fixed figure until then, or if the route data is unavailable).
@@ -652,7 +652,7 @@ function getTotalGainFt(){
 
 // Hardcoded fallback roster — used until the Sheet's Runners tab loads (or if
 // it's unreachable). Once loaded, the Sheet's data overwrites these in place.
-// NOTE: the 6 codes below (EK, DC, BA, DJ, LM, JH) are wired into the fixed
+// NOTE: the 6 codes below (EK, DC, BA, DJ, LM, LC) are wired into the fixed
 // leg rotation in LEG_SPECS further down. Who/what is attached to a code
 // (fullName, init, color, pace) is fully editable from the Sheet — the codes
 // themselves aren't, since the whole rotation plan is built around them.
@@ -662,7 +662,7 @@ const DEFAULT_RUNNERS = [
   {name:'BA', fullName:'Ben',    init:'BA', base10k:450, color:'#4a8fe0'},
   {name:'DJ', fullName:'DJ',     init:'DJ', base10k:450, color:'#1f7a87'},
   {name:'LM', fullName:'Levi',   init:'LM', base10k:480, color:'#3f3d9b'},
-  {name:'JH', fullName:'Luke',   init:'LC', base10k:500, color:'#c8312b'},
+  {name:'LC', fullName:'Luke',   init:'LC', base10k:500, color:'#c8312b'},
 ];
 const DEFAULT_SUPPORT = [
   {name:'Support 1', fullName:'Support 1', init:'S1', color:'#888888'},
@@ -686,80 +686,80 @@ RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
 let ALL_PEOPLE = [...RUNNERS, ...SUPPORT];
 
 // KML-derived leg specs: [startMile, legMiles, gainFt, runnerName]
-// Pure EK→DC→BA→DJ→LM→JH rotation. No back-to-backs. DC/LM always 3 legs apart.
+// Pure EK→DC→BA→DJ→LM→LC rotation. No back-to-backs. DC/LM always 3 legs apart.
 const LEG_SPECS = [
   [0.0,5.0,279,'EK'],
   [5.0,5.0,317,'DC'],
   [10.0,4.0,320,'BA'],
   [14.0,5.0,311,'DJ'],
   [19.0,3.0,371,'LM'],
-  [22.0,2.0,377,'JH'],
+  [22.0,2.0,377,'LC'],
   [24.0,2.0,524,'EK'],
   [26.0,2.0,547,'DC'],
   [28.0,2.0,704,'BA'],
   [30.0,2.0,727,'DJ'],
   [32.0,2.0,731,'LM'],
-  [34.0,2.0,678,'JH'],
+  [34.0,2.0,678,'LC'],
   [36.0,2.0,422,'EK'],
   [38.0,4.0,565,'DC'],
   [42.0,2.0,556,'BA'],
   [44.0,2.0,436,'DJ'],
   [46.0,2.0,697,'LM'],
-  [48.0,2.0,725,'JH'],
+  [48.0,2.0,725,'LC'],
   [50.0,4.0,488,'EK'],
   [54.0,3.0,594,'DC'],
   [57.0,4.0,307,'BA'],
   [61.0,3.0,527,'DJ'],
   [64.0,5.0,235,'LM'],
-  [69.0,5.0,93,'JH'],
+  [69.0,5.0,93,'LC'],
   [74.0,5.0,116,'EK'],
   [79.0,5.0,91,'DC'],
   [84.0,5.0,74,'BA'],
   [89.0,5.0,22,'DJ'],
   [94.0,5.0,19,'LM'],
-  [99.0,5.0,32,'JH'],
+  [99.0,5.0,32,'LC'],
   [104.0,4.0,418,'EK'],
   [108.0,2.0,575,'DC'],
   [110.0,2.0,372,'BA'],
   [112.0,5.0,221,'DJ'],
   [117.0,4.0,459,'LM'],
-  [121.0,4.0,358,'JH'],
+  [121.0,4.0,358,'LC'],
   [125.0,5.0,36,'EK'],
   [130.0,4.0,339,'DC'],
   [134.0,3.0,370,'BA'],
   [137.0,5.0,114,'DJ'],
   [142.0,5.0,255,'LM'],
-  [147.0,5.0,32,'JH'],
+  [147.0,5.0,32,'LC'],
   [152.0,5.0,60,'EK'],
   [157.0,5.0,89,'DC'],
   [162.0,5.0,130,'BA'],
   [167.0,5.0,133,'DJ'],
   [172.0,5.0,235,'LM'],
-  [177.0,5.0,133,'JH'],
+  [177.0,5.0,133,'LC'],
   [182.0,5.0,116,'EK'],
   [187.0,2.0,415,'DC'],
   [189.0,5.0,152,'BA'],
   [194.0,5.0,30,'DJ'],
   [199.0,5.0,200,'LM'],
-  [204.0,4.0,479,'JH'],
+  [204.0,4.0,479,'LC'],
   [208.0,3.0,519,'EK'],
   [211.0,2.0,402,'DC'],
   [213.0,2.0,520,'BA'],
   [215.0,2.0,398,'DJ'],
   [217.0,2.0,490,'LM'],
-  [219.0,2.0,416,'JH'],
+  [219.0,2.0,416,'LC'],
   [221.0,5.0,93,'EK'],
   [226.0,5.0,316,'DC'],
   [231.0,2.0,513,'BA'],
   [233.0,2.0,547,'DJ'],
   [235.0,2.0,637,'LM'],
-  [237.0,2.0,448,'JH'],
+  [237.0,2.0,448,'LC'],
   [239.0,5.0,112,'EK'],
   [244.0,5.0,1,'DC'],
   [249.0,5.0,91,'BA'],
   [254.0,5.0,54,'DJ'],
   [259.0,5.0,275,'LM'],
-  [264.0,5.0,300,'JH'],
+  [264.0,5.0,300,'LC'],
   [269.0,4.0,558,'EK'],
   [273.0,5.0,194,'DC'],
   [278.0,5.0,6,'BA'],
@@ -903,7 +903,7 @@ let overrides={}; // legNumber -> {runner, miles}
 let syncTimer=null;
 const SYNC_INTERVAL_MS = 15000;
 const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
-const ROSTER_CACHE_KEY = 'tsp_roster_v1';
+const ROSTER_CACHE_KEY = 'tsp_roster_v2';
 const SETTINGS_CACHE_KEY = 'tsp_settings_v1';
 
 function setSyncStatus(state, text){
@@ -1302,7 +1302,7 @@ function renderDash(){
       <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
-            <select id="adjust-next-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
+            <select id="adjust-next-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
           </div>
           <div><div class="form-label">Miles</div>
             <input type="number" id="adjust-next-miles" value="${nextEff.miles}" min="0.1" max="30" step="0.1">
@@ -1333,7 +1333,7 @@ function renderDash(){
       <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
-            <select id="adjust-deck-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${r.name}</option>`).join('')}</select>
+            <select id="adjust-deck-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
           </div>
           <div><div class="form-label">Miles</div>
             <input type="number" id="adjust-deck-miles" value="${onDeckEff.miles}" min="0.1" max="30" step="0.1">
@@ -1438,7 +1438,7 @@ function renderProjected(){
     <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-faint);align-self:center">Short legs run faster · Elevation penalty baked in (${getTotalGainFt().toLocaleString()}ft gain)</span>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    ${RUNNERS.map(r=>`<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 9px;border:1px solid ${RUNNER_COLORS[r.name]};color:${RUNNER_COLORS[r.name]};background:${RUNNER_COLORS[r.name]}18">${r.name}</span>`).join('')}
+    ${RUNNERS.map(r=>`<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 9px;border:1px solid ${RUNNER_COLORS[r.name]};color:${RUNNER_COLORS[r.name]};background:${RUNNER_COLORS[r.name]}18">${esc(r.init)} · ${esc(r.fullName)}</span>`).join('')}
   </div>
   <div class="tbl-wrap"><div class="tbl-scroll"><table>
     <thead><tr>
@@ -1469,7 +1469,7 @@ function renderLog(){
   html+=`<div class="form-card">
     <div class="form-row">
       <div><div class="form-label">Runner</div>
-        <select id="log-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===defRunner?' selected':''}>${r.name}</option>`).join('')}</select>
+        <select id="log-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===defRunner?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
       </div>
       <div><div class="form-label">Miles Run</div>
         <input type="number" id="log-miles" value="${defMiles}" min="0.1" max="30" step="0.1">
