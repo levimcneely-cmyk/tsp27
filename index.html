@@ -338,6 +338,16 @@
   .diff-pos { font-family: var(--mono); font-size: 10px; color: var(--red); font-weight: 700; }
   .diff-neg { font-family: var(--mono); font-size: 10px; color: var(--green); font-weight: 700; }
   .diff-ok  { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); }
+  .ahead-line { font-size: 14px !important; margin-top: 10px; }
+  .actual-tbl .col-n { width: 28px; } .actual-tbl .col-runner { width: 96px; } .actual-tbl .col-clock { width: 64px; }
+  .actual-tbl .col-mi { width: 46px; } .actual-tbl .col-pace { width: 70px; } .actual-tbl .col-time { width: 54px; } .actual-tbl .col-diff { width: 78px; }
+  @media (max-width: 600px) {
+    .actual-tbl th, .actual-tbl td { padding-left: 5px; padding-right: 5px; }
+    .actual-tbl .col-clock, .actual-tbl .col-rname { display: none; }
+    .actual-tbl .col-n { width: 20px; } .actual-tbl .col-runner { width: 34px; }
+    .actual-tbl .col-mi { width: 30px; } .actual-tbl .col-pace { width: 66px; } .actual-tbl .col-time { width: 42px; } .actual-tbl .col-diff { width: 72px; }
+    .actual-tbl .pace-val, .actual-tbl .diff-pos, .actual-tbl .diff-neg, .actual-tbl .diff-ok { font-size: 10px; }
+  }
 
   /* ---------- Forms ---------- */
   .form-card {
@@ -1566,6 +1576,13 @@ async function deleteLeg(idx){
   }
 }
 
+// Ahead/behind as ±h:mm:ss — negative = faster than plan (green), positive = slower (red)
+function fmtDiff(sec){
+  const t=Math.round(Math.abs(sec)), h=Math.floor(t/3600), m=Math.floor(t%3600/60), ss=t%60;
+  return (t===0?'':sec<0?'−':'+')+h+':'+String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+}
+function diffCls(sec){ return sec==null||Math.abs(sec)<5 ? 'diff-ok' : sec>0 ? 'diff-pos' : 'diff-neg'; }
+
 function renderActual(){
   const el=document.getElementById('page-actual');
   if(!actualLegs.length){
@@ -1575,26 +1592,32 @@ function renderActual(){
   const avgPace=totMi?totMin/totMi*60:0;
   const projRemain=SCHEDULE.slice(actualLegs.length).reduce((a,l)=>a+l.dur,0);
 
-  let elapsed=0;
+  let elapsed=0, cumDiff=0;
   const rows=actualLegs.map((l,i)=>{
     const pace=l.dur/parseFloat(l.miles)*60;
     const proj=SCHEDULE[i];
-    const diff=proj?pace-proj.pace:null;
-    const diffStr=diff!==null?(diff>0?'+':'')+Math.round(diff)+'s':'';
-    const diffClass=diff===null?'diff-ok':Math.abs(diff)<15?'diff-ok':diff>0?'diff-pos':'diff-neg';
+    // time gained/lost on this leg: actual time vs the plan's pace over the miles actually run
+    const diff=proj?(l.dur*60 - proj.pace*parseFloat(l.miles)):null;
+    if(diff!==null) cumDiff+=diff;
+    const diffStr=diff!==null?fmtDiff(diff):'';
+    const diffClass=diffCls(diff);
+    const cumStr=diff!==null?fmtDiff(cumDiff):'';
+    const cumClass=diffCls(diff!==null?cumDiff:null);
     const clock=fmtClock(START_HOUR,elapsed);
     elapsed+=l.dur;
     const av=ALL_PEOPLE.find(p=>p.name===l.runner)||{init:'?'};
     return `<tr>
       <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${i+1}</td>
-      <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${clock}</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span class="col-rname" style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
+      <td class="col-clock" style="font-family:'Space Mono',monospace;font-size:10px">${clock}</td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${l.miles}</td>
       <td class="pace-val">${fmtPace(pace)}/mi</td>
       <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(l.dur)}</td>
       <td><span class="${diffClass}">${diffStr}</span></td>
+      <td><span class="${cumClass}">${cumStr}</span></td>
     </tr>`;
   }).join('');
+  const aheadTxt = Math.abs(cumDiff)<5 ? 'Right on plan' : fmtDiff(cumDiff).slice(1)+(cumDiff<0?' ahead of plan':' behind plan');
 
   const runnerSplits=RUNNERS.map(r=>{
     const rl=actualLegs.filter(l=>l.runner===r.name);
@@ -1623,13 +1646,14 @@ function renderActual(){
       <div class="info-block-label">Updated Proj. Finish</div>
       <div class="info-block-big">${fmtClock(START_HOUR,totMin+projRemain)}</div>
       <div class="info-block-sub">${fmtDur(totMin+projRemain)} total</div>
+      <div class="ahead-line ${diffCls(cumDiff)}">${aheadTxt}</div>
     </div>
   </div>
   <div class="section-head">Leg by Leg</div>
-  <div class="tbl-wrap"><div class="tbl-scroll"><table>
+  <div class="tbl-wrap"><div class="tbl-scroll"><table class="actual-tbl">
     <thead><tr>
-      <th style="width:28px">#</th><th style="width:100px">Runner</th><th style="width:64px">Clock</th>
-      <th style="width:50px">Miles</th><th style="width:72px">Pace</th><th style="width:60px">Time</th><th>vs Proj</th>
+      <th class="col-n">#</th><th class="col-runner">Runner</th><th class="col-clock">Clock</th>
+      <th class="col-mi">Miles</th><th class="col-pace">Pace</th><th class="col-time">Time</th><th class="col-diff">Leg ±</th><th class="col-diff">Total ±</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div></div>`;
