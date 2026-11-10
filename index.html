@@ -696,6 +696,7 @@
   .route-wrap { margin-top: 6px; }
 
   /* ---------- splits ---------- */
+  .splits-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }
   .splits-key { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .splits-note { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); line-height: 1.6; }
   .splits-scroll { max-height: 62vh; }
@@ -1894,6 +1895,10 @@ function renderSplits(){
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div></div>
+  ${(done||RACE_CFG.actualStart)?`<div class="splits-actions">
+    ${done?`<button class="btn-ghost" onclick="removeLeg('${esc(actualLegs[done-1].id)}')">REMOVE LAST LEG (${done})</button>`:''}
+    <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(200,49,43,0.4);color:var(--red)">CLEAR WHOLE RACE</button>
+  </div>`:''}
   <div class="section-head" style="margin-top:22px">Runner Splits</div>
   <div class="info-block">${runnerSplits}</div>`;
   // keep the current leg in view
@@ -2011,16 +2016,16 @@ function saveFix(id){
 async function removeLeg(id){
   if(!confirm('Remove this leg for everyone?')) return;
   if(id.startsWith('q-')){
-    outbox=outbox.filter(o=>'q-'+o.qid!==id); saveOutbox(); rebuildActual(); renderLog(); return;
+    outbox=outbox.filter(o=>'q-'+o.qid!==id); saveOutbox(); rebuildActual(); renderPage(getActivePageId()); return;
   }
-  if(await postNow({action:'delete', id})) renderLog();
+  if(await postNow({action:'delete', id})) renderPage(getActivePageId());
 }
 async function clearAll(){
   if(!confirm('Clear ALL logged legs and the start time for everyone? This can\'t be undone.')) return;
   if(!confirm('Really sure? This wipes the whole race log.')) return;
   outbox=outbox.filter(o=>o.action!=='add'&&o.action!=='startRace'&&o.action!=='updateLeg'); saveOutbox();
   RACE_CFG.actualStart=null;
-  if(await postNow({action:'clear'})){ updateStartHour(); renderLog(); }
+  if(await postNow({action:'clear'})){ updateStartHour(); renderPage(getActivePageId()); toast('Race log cleared.'); }
 }
 async function saveStartTime(){
   const v=document.getElementById('fix-start').value;
