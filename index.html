@@ -10,6 +10,14 @@
 <meta name="format-detection" content="telephone=no">
 <title>TSP — Race HQ</title>
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+  (function(){ try{
+    var p=localStorage.getItem('tsp_theme_v1')||'auto', h=new Date().getHours();
+    var dark=p==='dark'||(p==='auto'&&(h>=19||h<6));
+    document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  }catch(e){} })();
+</script>
 <link rel="apple-touch-icon" href="img/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Permanent+Marker&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -31,6 +39,10 @@
     --line-strong: rgba(0,0,0,0.22);
     --red: #c8312b;
     --green: #1f8a4c;
+    --on-ink: #ffffff;        /* text on solid ink (black) backgrounds */
+    --duct-gray: #c9c9c9;
+    --duct-label: #b3b3b3;
+    --check-ink: #000000;
     --display: 'Londrina Solid', 'Arial Black', sans-serif;
     --mono: 'Space Mono', ui-monospace, monospace;
     --marker: 'Permanent Marker', 'Comic Sans MS', cursive;   /* black Sharpie */
@@ -187,7 +199,7 @@
   }
   .progress-track {
     height: 12px;
-    background-color: #c9c9c9;
+    background-color: var(--duct-gray);
     background-image: var(--duct);
     position: relative; overflow: hidden;
     clip-path: var(--torn-thin);
@@ -200,7 +212,7 @@
   .route-ink  { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
   .route-tape { fill: none; stroke: var(--blue); stroke-width: 20; stroke-linecap: butt; stroke-linejoin: round; opacity: .82; }
   .route-end  { font-family: var(--marker); font-size: 44px; fill: var(--gray); }
-  .route-dot  { stroke: #fff; stroke-width: 5; }
+  .route-dot  { stroke: var(--paper); stroke-width: 5; }
   .route-meta { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); margin-top: 4px; }
   .route-meta strong { color: var(--blue); }
 
@@ -217,7 +229,7 @@
     content: 'now running';
     position: absolute; top: 0; right: 0;
     font-family: var(--marker); font-size: 15px; letter-spacing: .02em;
-    color: var(--ink); background-color: #b3b3b3; background-image: var(--duct);
+    color: #111; background-color: var(--duct-label); background-image: var(--duct);
     padding: 4px 14px 3px 16px;
     clip-path: var(--torn);
   }
@@ -309,7 +321,7 @@
     padding: 9px 10px;
     text-align: left;
     font-family: var(--mono); font-size: 8px; letter-spacing: .14em;
-    color: #fff; text-transform: uppercase; font-weight: 400;
+    color: var(--on-ink); text-transform: uppercase; font-weight: 400;
     position: sticky; top: 0; z-index: 2;
   }
   tbody td {
@@ -330,7 +342,7 @@
     display: inline-block; padding: 2px 7px;
     font-family: var(--mono); font-size: 9px; letter-spacing: .06em; border: 1px solid;
   }
-  .tag-night  { border-color: var(--ink); color: #fff; background: var(--ink); }
+  .tag-night  { border-color: var(--ink); color: var(--on-ink); background: var(--ink); }
   .tag-heat   { border-color: rgba(200,49,43,0.5); color: var(--red); background: rgba(200,49,43,0.06); }
   .tag-dawn   { border-color: var(--blue-line); color: var(--blue); background: var(--blue-tint); }
   .tag-normal { border-color: var(--line-strong); color: var(--ink-dim); }
@@ -500,7 +512,7 @@
   .countdown-val span { font-size: 26px; color: rgba(255,255,255,0.65); margin: 0 12px 0 3px; }
   .countdown-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; opacity: .85; margin-top: 8px; line-height: 1.6; }
   .countdown .btn { background: #fff; color: var(--blue); }
-  .countdown.live { background-color: var(--ink); background-image: none; }
+  .countdown.live { background-color: var(--ink); background-image: none; color: var(--on-ink); }
   .countdown-mark { position: absolute; right: 18px; top: 50%; transform: translateY(-50%) rotate(-4deg); height: 70%; opacity: .95; }
 
   .logi-toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
@@ -510,14 +522,14 @@
     background: var(--paper); border: 2px solid var(--line-strong);
     color: var(--ink-dim); cursor: pointer;
   }
-  .chip.on { border-color: var(--ink); color: #fff; background: var(--ink); }
+  .chip.on { border-color: var(--ink); color: var(--on-ink); background: var(--ink); }
   .logi-toolbar select { width: auto; min-height: 34px; font-size: 12px; padding: 5px 30px 5px 10px; }
   .logi-day {
     font-family: var(--display); font-weight: 900; font-size: 20px; letter-spacing: .06em;
     color: var(--ink); margin: 22px 0 8px;
     display: flex; align-items: center; gap: 10px;
   }
-  .logi-day::after { content: ''; flex: 1; height: 8px; background-color: #c9c9c9; background-image: var(--duct); clip-path: var(--torn-thin); }
+  .logi-day::after { content: ''; flex: 1; height: 8px; background-color: var(--duct-gray); background-image: var(--duct); clip-path: var(--torn-thin); }
   .logi-card {
     background: var(--paper);
     border: 2px solid var(--line);
@@ -590,12 +602,173 @@
     position: relative; flex-shrink: 0;
   }
   .mark svg { position: absolute; left: -1px; top: -6px; width: 22px; height: 20px; overflow: visible; }
-  .mark svg path { fill: none; stroke: var(--ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .mark svg path { fill: none; stroke: var(--check-ink); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
   button.who-chip.ok { background-color: var(--blue) !important; background-image: var(--painters); border-color: var(--blue) !important; color: #fff !important; }
   button.who-chip.ok .mark { background: #fff; border-color: #fff; }
+  button.who-chip.ok .mark svg path { stroke: #111; }
 
   .site-foot { text-align: center; padding: 34px 0 10px; }
   .site-foot img { height: 60px; width: auto; opacity: .9; }
+
+  /* ============ NIGHT MODE (auto 7pm–6am, or the ◐ button) ============ */
+  :root[data-theme="dark"] {
+    --blue: #3b82dc; --blue-dark: #2a66b5;
+    --blue-tint: rgba(59,130,220,0.16); --blue-line: rgba(59,130,220,0.45);
+    --gray: #8a8a8a; --gray-tint: #2a2d33;
+    --ink: #f1f1ee; --ink-dim: #a9abaf; --ink-faint: #71757b;
+    --paper: #111317; --paper2: #1b1e23;
+    --line: rgba(255,255,255,0.10); --line-strong: rgba(255,255,255,0.24);
+    --red: #ff6b5f; --green: #4cc47f;
+    --on-ink: #111317; --duct-gray: #4a4d52; --duct-label: #8f8f8f; --check-ink: #f1f1ee;
+    color-scheme: dark;
+  }
+  .logo-dark { display: none !important; }
+  :root[data-theme="dark"] .logo-light { display: none !important; }
+  :root[data-theme="dark"] .logo-dark { display: block !important; }
+  :root[data-theme="dark"] .countdown .btn { background: var(--paper); }
+  :root[data-theme="dark"] thead th { background: #2a2d33; color: var(--ink); }
+  :root[data-theme="dark"] .tbl-wrap { border-color: var(--line-strong); }
+  .theme-btn {
+    margin-left: 14px; width: 38px; height: 38px; flex-shrink: 0;
+    background: var(--paper); border: 2px solid var(--line-strong); color: var(--ink);
+    font-size: 17px; line-height: 1; cursor: pointer;
+  }
+
+  /* ---------- sync bar: who am I ---------- */
+  .sync-dot.warn { background: #e0a100; animation: pulse 1s infinite; }
+  .sync-status .me-btn { margin-left: auto; font-family: var(--marker); font-size: 14px; letter-spacing: .01em; font-weight: 400; color: var(--ink); }
+  .sync-status .me-btn + button { margin-left: 6px; }
+  #sync-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- overlays: team code + who are you ---------- */
+  .overlay[hidden] { display: none; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #me-picker { background: rgba(0,0,0,0.55); }
+  .gate-card {
+    width: 100%; max-width: 360px; background: var(--paper);
+    display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 22px;
+  }
+  #me-picker .gate-card { border: 2px solid var(--ink); }
+  .gate-card img { width: 190px; height: auto; margin: 0 auto 8px; }
+  .gate-label { font-family: var(--marker); font-size: 24px; text-align: center; color: var(--ink); }
+  #gate-code { text-align: center; font-size: 28px; letter-spacing: .4em; }
+  .gate-msg { font-family: var(--mono); font-size: 11px; color: var(--red); text-align: center; min-height: 16px; }
+  .me-sub { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); text-align: center; line-height: 1.6; }
+  .me-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
+    max-width: calc(100% - 32px); width: max-content;
+    background: var(--ink); color: var(--on-ink);
+    font-family: var(--mono); font-size: 12px; line-height: 1.5; padding: 10px 14px;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 120;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- race tab ---------- */
+  .me-banner {
+    font-family: var(--marker); font-size: 18px; color: #fff;
+    background-color: var(--ink); color: var(--on-ink);
+    padding: 10px 16px; margin-bottom: 12px; clip-path: var(--torn);
+  }
+  .me-banner.now { background-color: var(--blue); background-image: var(--painters); color: #fff; }
+  .leg-timer-wrap { margin: 2px 0 14px; }
+  .leg-timer { font-family: var(--display); font-weight: 900; font-size: 54px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .btn-handoff {
+    display: block; width: 100%; margin-top: 18px;
+    font-size: 26px; padding: 18px 20px 16px; min-height: 64px;
+  }
+  .handoff-hint { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); text-align: center; margin-top: 8px; letter-spacing: .04em; }
+  .now-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-ghost.accent { border-color: var(--blue-line); color: var(--blue); }
+  .btn-ghost.accent:hover { border-color: var(--blue); color: var(--blue); }
+  .runner-cell.is-me { box-shadow: inset 0 0 0 2px var(--ink); }
+  .last-logged { text-align: center; margin-top: 14px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; color: var(--ink-faint); }
+  .pending-tag { font-family: var(--mono); font-size: 9px; letter-spacing: .06em; font-weight: 700; color: #b07a00; background: rgba(224,161,0,0.14); padding: 1px 6px; }
+  :root[data-theme="dark"] .pending-tag { color: #f0c04a; }
+  .now-tag { font-family: var(--marker); font-size: 13px; color: var(--blue); }
+  .you-tag { font-family: var(--marker); font-size: 13px; color: var(--ink); background: var(--blue-tint); padding: 0 6px; margin-left: 6px; letter-spacing: .02em; }
+  .route-wrap { margin-top: 6px; }
+
+  /* ---------- splits ---------- */
+  .splits-key { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .splits-note { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); line-height: 1.6; }
+  .splits-scroll { max-height: 62vh; }
+  .splits-tbl td, .splits-tbl th { padding-left: 6px; padding-right: 6px; }
+  .splits-tbl td { font-family: var(--mono); font-size: 11px; }
+  .splits-tbl .col-n { width: 30px; color: var(--ink-faint); }
+  .splits-tbl .col-runner { width: 40px; }
+  .splits-tbl .col-clock { width: 70px; }
+  .splits-tbl .col-mi { width: 40px; }
+  .splits-tbl .col-time { width: auto; }
+  .splits-tbl .col-diff { width: 80px; }
+  .splits-tbl .col-cond { width: 76px; }
+  .splits-tbl .t-main { display: block; color: var(--ink); font-weight: 700; }
+  .splits-tbl .t-sub { display: block; font-size: 9px; color: var(--ink-faint); }
+  .splits-tbl tr.is-done-row { cursor: pointer; }
+  .splits-tbl tr.is-upcoming td { color: var(--ink-faint); }
+  .splits-tbl tr.is-upcoming .t-main { color: var(--ink-dim); font-weight: 400; }
+  .splits-tbl tr.is-me td:first-child { box-shadow: inset 4px 0 0 var(--ink); }
+  .splits-tbl tr.is-pending td { background: rgba(224,161,0,0.06); }
+  .splits-tbl tr.day-row td {
+    background: var(--paper2); color: var(--ink); font-family: var(--display); font-weight: 900;
+    font-size: 14px; letter-spacing: .08em; padding-top: 8px; padding-bottom: 6px;
+  }
+  .av-sm { width: 24px; height: 24px; font-size: 10px; border-width: 2px; }
+  @media (max-width: 600px) {
+    .splits-tbl td, .splits-tbl th { padding-left: 4px; padding-right: 4px; }
+    .splits-tbl .col-n { width: 22px; } .splits-tbl .col-runner { width: 32px; } .splits-tbl .col-clock { width: 58px; }
+    .splits-tbl .col-mi { width: 30px; } .splits-tbl .col-time { width: auto; } .splits-tbl .col-diff { width: 66px; }
+    .splits-tbl td { font-size: 10px; }
+    .splits-tbl .diff-pos, .splits-tbl .diff-neg, .splits-tbl .diff-ok { font-size: 10px; }
+    .theme-btn { width: 34px; height: 34px; margin-left: 10px; }
+  }
+
+  /* ---------- fix legs ---------- */
+  .fix-start { display: flex; gap: 8px; align-items: center; }
+  .fix-start input { flex: 1; min-width: 0; }
+  .fix-note { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 8px; }
+  .fix-list { border: 2px solid var(--line); }
+  .fix-row { border-bottom: 1px solid var(--line); }
+  .fix-row:last-child { border-bottom: none; }
+  .fix-row.open { background: var(--paper2); }
+  .fix-summary { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; }
+  .fix-n { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); width: 20px; }
+  .fix-name { font-family: var(--display); font-weight: 900; font-size: 17px; color: var(--ink); }
+  .fix-meta { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-left: auto; text-align: right; }
+  .fix-edit { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--blue); letter-spacing: .08em; }
+  .fix-form { padding: 4px 12px 14px; }
+
+  /* ---------- checklist ---------- */
+  .checklist { margin: 0 0 24px; }
+  .checklist-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .check-list { border-top: 2px solid var(--line); }
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
+  .check-row.mine .check-text { font-weight: 700; }
+  .check-box {
+    width: 26px; height: 26px; flex-shrink: 0; border: 2px solid var(--ink); background: var(--paper);
+    position: relative; cursor: pointer; padding: 0;
+  }
+  .check-box svg { position: absolute; left: 1px; top: -8px; width: 30px; height: 28px; overflow: visible; }
+  .check-box svg path { fill: none; stroke: var(--check-ink); stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+  .check-text { flex: 1; min-width: 0; font-size: 15px; color: var(--ink); word-break: break-word; }
+  .check-row.done .check-text { color: var(--ink-faint); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .check-row .who-chip { flex-shrink: 0; }
+  .check-del { background: none; border: none; color: var(--ink-faint); font-size: 22px; line-height: 1; padding: 0 4px; cursor: pointer; min-height: 32px; }
+  .check-del:hover { color: var(--red); }
+  .check-empty { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); padding: 12px 2px; }
+  .check-add { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-top: 10px; }
+  .check-add select { width: auto; font-size: 13px; }
+  .check-add .btn { font-size: 17px; padding: 10px 16px; }
+  @media (max-width: 600px) {
+    .check-add { grid-template-columns: 1fr 1fr; }
+    .check-add input { grid-column: 1 / -1; }
+  }
 </style>
 
 </head>
@@ -604,7 +777,8 @@
 <header class="header">
   <div class="header-inner">
     <div class="header-logo">
-      <img src="img/logo-tsp.png" alt="TSP — The Speed Project, LA to LV">
+      <img class="logo-light" src="img/logo-tsp.png" alt="TSP — The Speed Project, LA to LV">
+      <img class="logo-dark" src="img/logo-tsp-dark.png" alt="" aria-hidden="true">
     </div>
     <div class="header-meta">
       <div class="header-meta-label">START</div>
@@ -622,28 +796,48 @@
       <div class="status-dot"></div>
       <span class="status-label" id="status-label">LALV27</span>
     </div>
+    <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" aria-label="Light / dark mode">◐</button>
   </div>
 </header>
 
 <div class="sync-status" id="sync-status">
   <div class="sync-dot" id="sync-dot"></div>
-  <span id="sync-text">Not connected to sheet</span>
+  <span id="sync-text">Loading…</span>
+  <button class="me-btn" id="me-btn" onclick="openMePicker()">Who are you?</button>
   <button onclick="manualSync()">SYNC</button>
 </div>
 
 <nav id="main-nav">
   <button data-page="logistics" onclick="goPage('logistics',this,true)">LOGISTICS</button>
-  <button data-page="dash" onclick="goPage('dash',this,true)">DASHBOARD</button>
-  <button data-page="projected" onclick="goPage('projected',this,true)">PROJECTED</button>
-  <button data-page="log" onclick="goPage('log',this,true)">LOG LEG</button>
-  <button data-page="actual" onclick="goPage('actual',this,true)">ACTUAL</button>
+  <button data-page="dash" onclick="goPage('dash',this,true)">RACE</button>
+  <button data-page="splits" onclick="goPage('splits',this,true)">SPLITS</button>
 </nav>
 
 <div id="page-logistics" class="page"></div>
 <div id="page-dash" class="page"></div>
-<div id="page-projected" class="page"></div>
+<div id="page-splits" class="page"></div>
 <div id="page-log" class="page"></div>
-<div id="page-actual" class="page"></div>
+
+<!-- Team code -->
+<div id="gate" class="overlay" hidden>
+  <form class="gate-card" onsubmit="submitGate(event)">
+    <img class="logo-light" src="img/logo-tsp.png" alt="TSP">
+    <img class="logo-dark" src="img/logo-tsp-dark.png" alt="" aria-hidden="true">
+    <div class="gate-label">Team code</div>
+    <input id="gate-code" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="Team code">
+    <button class="btn" id="gate-btn" type="submit">ENTER</button>
+    <div id="gate-msg" class="gate-msg"></div>
+  </form>
+</div>
+
+<!-- Who are you? -->
+<div id="me-picker" class="overlay" hidden onclick="if(event.target===this)closeMePicker()">
+  <div class="gate-card">
+    <div class="gate-label">Who are you?</div>
+    <div class="me-sub">Highlights your flights, legs and to-dos. Only saved on this phone.</div>
+    <div class="me-list"></div>
+  </div>
+</div>
 
 <script>
 // Race-level settings — defaults below, overwritten once the Settings tab loads.
@@ -680,17 +874,43 @@ const DEFAULT_SUPPORT = [
 ];
 
 // Sheet colors were picked for a dark screen; darken any that are too light to read on white.
+// ---- Theme: light by day, dark overnight (or pinned with the ◐ button) ----
+const THEME_STORE='tsp_theme_v1';
+let themePref = lsGet(THEME_STORE) || 'auto';     // auto | dark | light
+function isDark(){ return document.documentElement.getAttribute('data-theme')==='dark'; }
+function applyTheme(skipRender){
+  const h=new Date().getHours();
+  const dark = themePref==='dark' || (themePref==='auto' && (h>=19 || h<6));
+  const was=isDark();
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', dark?'#111317':'#ffffff');
+  const b=document.getElementById('theme-btn');
+  if(b){ b.textContent = themePref==='auto' ? '◐' : dark ? '☾' : '☀'; b.title = 'Theme: '+themePref; }
+  if(!skipRender && was!==dark){ recolorPeople(); renderPage(getActivePageId()); }
+}
+function cycleTheme(){
+  themePref = {auto:'dark', dark:'light', light:'auto'}[themePref] || 'auto';
+  lsSet(THEME_STORE, themePref);
+  applyTheme();
+  toast(themePref==='auto' ? 'Theme: automatic (dark 7pm–6am)' : themePref==='dark' ? 'Theme: always dark' : 'Theme: always light');
+}
+// Sheet colors are shown as-is unless they'd be hard to read on the current background.
 function readableColor(hex){
   const m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'').trim());
-  if(!m) return '#5f5f5f';
+  if(!m) return isDark() ? '#a9abaf' : '#5f5f5f';
   let [r,g,b]=[0,2,4].map(i=>parseInt(m[1].substr(i,2),16));
   const lum=(R,G,B)=>{const f=c=>{c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);};return 0.2126*f(R)+0.7152*f(G)+0.0722*f(B);};
   let guard=0;
-  while((1.05/(lum(r,g,b)+0.05))<3.2 && guard++<40){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+  if(isDark()){
+    const bg=lum(17,19,23);
+    while(((lum(r,g,b)+0.05)/(bg+0.05))<4 && guard++<40){ r=Math.round(r+(255-r)*0.12); g=Math.round(g+(255-g)*0.12); b=Math.round(b+(255-b)*0.12); }
+  } else {
+    while((1.05/(lum(r,g,b)+0.05))<3.2 && guard++<40){ r=Math.round(r*0.92); g=Math.round(g*0.92); b=Math.round(b*0.92); }
+  }
   return '#'+[r,g,b].map(c=>c.toString(16).padStart(2,'0')).join('');
 }
-let RUNNERS = DEFAULT_RUNNERS.map(r=>({...r, color:readableColor(r.color)}));
-let SUPPORT = DEFAULT_SUPPORT.map(r=>({...r, color:readableColor(r.color)}));
+let RUNNERS = DEFAULT_RUNNERS.map(r=>({...r, baseColor:r.color, color:readableColor(r.color)}));
+let SUPPORT = DEFAULT_SUPPORT.map(r=>({...r, baseColor:r.color, color:readableColor(r.color)}));
 let RUNNER_COLORS = {};
 RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
 let ALL_PEOPLE = [...RUNNERS, ...SUPPORT];
@@ -904,17 +1124,56 @@ function runnerTotalProjGain(name){
   return SCHEDULE.filter(l=>l.runner.name===name).reduce((a,l)=>a+l.gainFt,0);
 }
 
-// ============ GOOGLE SHEETS SYNC ============
-// Paste the Web App URL from your Apps Script deployment here:
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyY316px9irA8zVCAHm9NZQX4pJB18M6VmeF68Xm6HadrYze6saQfv17_H5cmmLbxRjIQ/exec';
-
-let actualLegs=[]; // each: {id, runner, miles, dur, gainFt}
-let overrides={}; // legNumber -> {runner, miles}
-let syncTimer=null;
+// ============ DATA LAYER — one API, team code, works with no signal ============
+// Everything (legs, logistics, crew, checklist) goes through one Apps Script.
+const API_URL = 'https://script.google.com/macros/s/AKfycbxw7cVAPDR6WZts0LFDZecY7Fu8tUAwtH-lujRoomRIawhBcSxtoRLygRJMNHf4G6ZtUg/exec';
+const KEY_STORE   = 'tsp_key_v1';     // team code, remembered on this phone
+const CACHE_STORE = 'tsp_cache_v2';   // last good copy of everything, for no-signal use
+const OUTBOX_STORE= 'tsp_outbox_v1';  // legs logged with no signal, waiting to send
+const ME_STORE    = 'tsp_me_v1';
 const SYNC_INTERVAL_MS = 15000;
-const ROUTE_CACHE_KEY = 'tsp_route_profile_v1';
-const ROSTER_CACHE_KEY = 'tsp_roster_v2';
-const SETTINGS_CACHE_KEY = 'tsp_settings_v1';
+const API_TIMEOUT_MS   = 15000;
+
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function lsJSON(k){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+
+let API_KEY = lsGet(KEY_STORE) || '';
+let ME = lsGet(ME_STORE) || '';
+let serverLegs = [];      // legs as the sheet has them
+let actualLegs = [];      // serverLegs + anything still waiting in the outbox
+let overrides = {};       // legNumber -> {runner, miles}
+let checklist = []; let checklistLoaded = false;
+let outbox = lsJSON(OUTBOX_STORE) || [];
+let CACHE = lsJSON(CACHE_STORE) || {};
+let syncTimer = null, flushing = false, staticLoaded = false;
+let netState = 'ok';      // ok | offline
+let lastSyncAt = CACHE.savedAt ? new Date(CACHE.savedAt) : null;
+let settingsStartHour = 4;
+
+class AuthError extends Error {}
+class ServerError extends Error {}
+
+async function apiFetch(url, opts){
+  const ctl = new AbortController();
+  const t = setTimeout(()=>ctl.abort(), API_TIMEOUT_MS);
+  try{
+    const res = await fetch(url, Object.assign({ signal: ctl.signal }, opts||{}));
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const j = await res.json();
+    if(j.error==='auth') throw new AuthError('auth');
+    if(j.error) throw new ServerError(j.error);
+    return j;
+  } finally { clearTimeout(t); }
+}
+function apiGet(action){
+  return apiFetch(API_URL+'?action='+encodeURIComponent(action)+'&key='+encodeURIComponent(API_KEY)+'&_='+Date.now());
+}
+function apiPost(body){
+  return apiFetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({ key: API_KEY }, body)) });
+}
+function isNetErr(e){ return !(e instanceof AuthError) && !(e instanceof ServerError); }
 
 function setSyncStatus(state, text){
   const dot=document.getElementById('sync-dot');
@@ -923,39 +1182,215 @@ function setSyncStatus(state, text){
   dot.className='sync-dot'+(state?' '+state:'');
   label.textContent=text;
 }
-
-function sheetConfigured(){
-  return SHEET_API_URL && SHEET_API_URL.indexOf('PASTE_YOUR') === -1;
+function refreshSyncStatus(){
+  const waiting = outbox.filter(o=>o.action==='add').length;
+  const other = outbox.length - waiting;
+  const last = lastSyncAt ? ' from '+clockStr(lastSyncAt) : '';
+  if(netState==='offline'){
+    if(outbox.length) setSyncStatus('warn', `No signal · ${waiting?waiting+' leg'+(waiting>1?'s':''):''}${other&&waiting?' + ':''}${other?other+' fix'+(other>1?'es':''):''} waiting`);
+    else setSyncStatus('err', 'No signal · saved data'+last);
+  } else if(outbox.length){
+    setSyncStatus('syncing', `Sending ${outbox.length} waiting…`);
+  } else {
+    setSyncStatus('ok', lastSyncAt ? 'Synced '+clockStr(lastSyncAt) : 'Connecting…');
+  }
 }
+function clockStr(d){ let h=d.getHours(), m=d.getMinutes(); const ap=h>=12?'pm':'am'; h=h%12||12; return h+':'+(m<10?'0':'')+m+ap; }
 
 function applyOverrides(list){
   overrides={};
   (list||[]).forEach(o=>{ overrides[o.legNumber]={runner:o.runner||null, miles:(o.miles===null||o.miles===undefined||o.miles==='')?null:parseFloat(o.miles)}; });
 }
+function normLeg(l, i){
+  return { id:String(l.id), legNumber: l.legNumber||i+1, runner:l.runner, miles:parseFloat(l.miles)||0,
+           dur:parseFloat(l.dur)||0, gainFt:parseFloat(l.gainFt)||0, start:l.start||'', end:l.end||'', pending:!!l.pending };
+}
 
-// ---- Route profile: fetched once, cached locally, refreshed quietly ----
-async function loadRouteProfile(){
-  try{
-    const cached=localStorage.getItem(ROUTE_CACHE_KEY);
-    if(cached){ ROUTE_PROFILE=JSON.parse(cached); }
-  }catch(e){/* ignore cache errors */}
-  if(!sheetConfigured()) return;
-  try{
-    const res=await fetch(SHEET_API_URL+'?action=route',{method:'GET'});
-    if(!res.ok) return;
-    const data=await res.json();
-    if(data.route && data.route.length){
-      ROUTE_PROFILE=data.route;
-      try{ localStorage.setItem(ROUTE_CACHE_KEY, JSON.stringify(ROUTE_PROFILE)); }catch(e){/* ignore */}
+// Take any API (or cached) payload and update app state.
+function ingest(d, fromCache){
+  if(!d) return;
+  let sched=false;
+  if(d.runners && d.runners.length){ applyRoster(d.runners); sched=true; }
+  if(d.route && d.route.length){ ROUTE_PROFILE=d.route; sched=true; }
+  if(d.settings){ applySettings(d.settings); sched=true; }
+  if(d.config) applyRaceCfg(d.config);
+  if(d.overrides) applyOverrides(d.overrides);
+  if(d.legs) serverLegs=d.legs.map(normLeg);
+  if(d.items){ logiItems=d.items; logiLoaded=true; }
+  if(d.going){ crewGoing=d.going; goingLoaded=true; }
+  if(d.checklist){ checklist=d.checklist; checklistLoaded=true; }
+  if(!fromCache){
+    ['runners','route','settings','config','overrides','legs','items','going','checklist'].forEach(k=>{ if(d[k]!==undefined) CACHE[k]=d[k]; });
+    CACHE.savedAt=new Date().toISOString();
+    lsSet(CACHE_STORE, JSON.stringify(CACHE));
+    lastSyncAt=new Date();
+  }
+  rebuildActual();
+  if(sched) rebuildSchedule();
+}
+
+// Legs the app shows = what the sheet has + anything still queued on this phone.
+function rebuildActual(){
+  const legs = serverLegs.map(l=>Object.assign({}, l));
+  const maxN = legs.length ? legs[legs.length-1].legNumber : 0;
+  outbox.forEach(op=>{
+    if(op.action==='add' && op.params.legNumber>maxN && !legs.some(l=>l.legNumber===op.params.legNumber)){
+      legs.push(normLeg({ id:'q-'+op.qid, legNumber:op.params.legNumber, runner:op.params.runner, miles:op.params.miles,
+        dur:op.params.dur, gainFt:op.params.gainFt, start:op.params.start, end:op.params.end, pending:true }));
     }
-  }catch(err){
-    console.error('loadRouteProfile error', err);
+    if(op.action==='updateLeg'){
+      const l=legs.find(x=>x.id===String(op.params.id));
+      if(l){ ['runner','miles','dur'].forEach(k=>{ if(op.params[k]!=null) l[k]=op.params[k]; }); l.pending=true; }
+    }
+    if(op.action==='startRace' && !RACE_CFG.actualStart){ RACE_CFG.actualStart=new Date(op.params.at); updateStartHour(); }
+  });
+  legs.sort((a,b)=>a.legNumber-b.legNumber);
+  actualLegs=legs;
+}
+
+function saveOutbox(){ lsSet(OUTBOX_STORE, JSON.stringify(outbox)); }
+function newQid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+// Race-critical changes (handoffs, leg fixes, race start) are queued so they survive dead zones.
+function queueAndSend(action, params){
+  const qid=newQid();
+  if(action==='add') params.clientId=qid;
+  outbox.push({ qid, action, params, at:new Date().toISOString() });
+  saveOutbox();
+  rebuildActual();
+  renderPage(getActivePageId());
+  refreshSyncStatus();
+  flushOutbox();
+}
+
+async function flushOutbox(){
+  if(flushing || !outbox.length || !API_KEY) return;
+  flushing=true;
+  try{
+    while(outbox.length){
+      const op=outbox[0];
+      try{
+        const d=await apiPost(Object.assign({ action: op.action }, op.params));
+        outbox.shift(); saveOutbox();
+        netState='ok';
+        if(d.duplicate) toast(`Leg ${d.duplicateLeg} was already logged from another phone — kept that one.`);
+        ingest(d);
+      }catch(e){
+        if(e instanceof AuthError){ showGate('Team code changed — enter it again.'); break; }
+        if(e instanceof ServerError){
+          outbox.shift(); saveOutbox();
+          toast("Couldn't save: "+e.message);
+          continue;
+        }
+        netState='offline'; break;   // no signal — try again later
+      }
+    }
+  } finally {
+    flushing=false;
+    rebuildActual();
+    refreshSyncStatus();
+    renderPage(getActivePageId());
+    autoLand();
   }
 }
 
+// Pull fresh data. 'all' on open/manual sync (includes roster + route), 'live' when polling.
+async function syncNow(full){
+  if(!API_KEY) return;
+  await flushOutbox();
+  try{
+    const d=await apiGet(full||!staticLoaded ? 'all' : 'live');
+    if(full||!staticLoaded) staticLoaded=true;
+    netState='ok';
+    ingest(d);
+  }catch(e){
+    if(e instanceof AuthError){ showGate('Enter the team code.'); return; }
+    netState='offline';
+  }
+  refreshSyncStatus();
+  rerenderSafely();
+  autoLand();
+}
+function rerenderSafely(){
+  const typing=document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName);
+  const id=getActivePageId();
+  if(typing) return;                       // don't wipe a form someone is filling in
+  if(id==='logistics' && logiFormOpen){ renderCrewLine(); renderChecklist(); return; }
+  renderPage(id);
+}
+function manualSync(){ setSyncStatus('syncing','Syncing…'); syncNow(true); }
+function startPolling(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer=setInterval(()=>{ if(document.visibilityState==='visible') syncNow(false); }, SYNC_INTERVAL_MS);
+}
+
+// Non-race edits (logistics, crew, checklist, plan adjustments) — try now; tell them if there's no signal.
+async function postNow(body){
+  try{
+    const d=await apiPost(body);
+    netState='ok'; ingest(d); refreshSyncStatus();
+    return d;
+  }catch(e){
+    if(e instanceof AuthError){ showGate('Enter the team code.'); return null; }
+    if(e instanceof ServerError){ toast("Couldn't save: "+e.message); return null; }
+    netState='offline'; refreshSyncStatus();
+    toast('No signal — that change wasn’t saved. Try again when you have bars.');
+    return null;
+  }
+}
+
+function toast(msg){
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent=msg; el.className='show';
+  clearTimeout(toast._t); toast._t=setTimeout(()=>{ el.className=''; }, 4200);
+}
+
+// ---------- Team code gate ----------
+function showGate(msg){
+  const g=document.getElementById('gate');
+  document.getElementById('gate-msg').textContent=msg||'';
+  g.hidden=false;
+  setTimeout(()=>{ const i=document.getElementById('gate-code'); if(i) i.focus(); }, 50);
+}
+async function submitGate(ev){
+  if(ev) ev.preventDefault();
+  const input=document.getElementById('gate-code'), msg=document.getElementById('gate-msg'), btn=document.getElementById('gate-btn');
+  const code=(input.value||'').trim();
+  if(!code){ msg.textContent='Enter the team code.'; return; }
+  btn.disabled=true; msg.textContent='Checking…';
+  const prev=API_KEY; API_KEY=code;
+  try{
+    await apiGet('ping');
+    lsSet(KEY_STORE, code);
+    document.getElementById('gate').hidden=true;
+    input.value='';
+    syncNow(true).then(()=>{ if(!ME) openMePicker(); });
+  }catch(e){
+    API_KEY=prev;
+    msg.textContent = (e instanceof AuthError) ? "That code didn't work." : "Can't reach the server — check your signal and try again.";
+  }finally{ btn.disabled=false; }
+}
+
+// ---------- "I'm ___" ----------
+function setMe(code){
+  ME=code||''; if(ME) lsSet(ME_STORE, ME); else lsDel(ME_STORE);
+  logiFilterWho = ME || 'all';
+  closeMePicker(); updateMeButton(); renderPage(getActivePageId());
+}
+function meName(){ const p=ALL_PEOPLE.find(x=>x.name===ME); return p?p.fullName:''; }
+function updateMeButton(){ const b=document.getElementById('me-btn'); if(b) b.textContent = ME ? 'You: '+meName() : 'Who are you?'; }
+function openMePicker(){
+  const el=document.getElementById('me-picker');
+  el.querySelector('.me-list').innerHTML = ALL_PEOPLE.map(p=>`<button class="who-chip${p.name===ME?' ok':''}" style="border-color:${p.color}80;color:${p.color}" onclick="setMe('${esc(p.name).replace(/'/g,"\\'")}')"><span class="mark">${p.name===ME?SHARPIE_CHECK:''}</span>${esc(p.fullName)}</button>`).join('')
+    + `<button class="btn-ghost" style="margin-top:6px" onclick="setMe('')">JUST BROWSING</button>`;
+  el.hidden=false;
+}
+function closeMePicker(){ document.getElementById('me-picker').hidden=true; }
+
+// ---------- Route profile helpers ----------
 // Sum elevation gain across an arbitrary mile range using the half-mile route
-// profile, prorating partial segments. Falls back to scaling the schedule's
-// fixed gain figure if no route profile has been loaded yet.
+// profile, prorating partial segments.
 function gainForRange(startMile, milesLen){
   if(!ROUTE_PROFILE.length || !milesLen || milesLen<=0) return null;
   const endMile=startMile+milesLen;
@@ -978,10 +1413,8 @@ function effectiveGain(startMile, milesLen, fallbackGainFt, fallbackMiles){
   return fallbackGainFt||0;
 }
 
-// Merge the default schedule with any live override for this leg, and
-// recompute gain/pace/duration against the real route profile + actual
-// mile marker rather than the fixed plan. startMile = where this leg
-// actually begins on the course (chained from actual progress so far).
+// Merge the default schedule with any live override for this leg, recomputing
+// gain/pace/duration from where the leg actually starts on the course.
 function getEffectiveLeg(legIndex, startMile){
   if(legIndex<0 || legIndex>=TOTAL_LEGS) return null;
   const base=SCHEDULE[legIndex];
@@ -995,65 +1428,54 @@ function getEffectiveLeg(legIndex, startMile){
   return {legNumber, runner, miles, gainFt, pace, dur, startMile, condition:base.condition, overridden:!!(ov&&(ov.runner||ov.miles!=null))};
 }
 
-// ---- Full roster (name, initials, color, pace, support flag): fetched once,
-// cached locally, refreshed quietly. Rebuilds RUNNERS/SUPPORT/RUNNER_COLORS/
-// ALL_PEOPLE from whatever comes back, falling back to the hardcoded
-// defaults for anything the Sheet doesn't have.
+// ---------- Roster (from the Runners tab) ----------
+// Rotation codes (EK, DC, BA, DJ, LM, LC) are fixed; name/initials/color/pace come from the sheet.
 function applyRoster(rows){
   if(!rows || !rows.length) return;
   const byCode={};
   rows.forEach(r=>{ byCode[r.code]=r; });
-
   RUNNERS = DEFAULT_RUNNERS.map(def=>{
     const s=byCode[def.name];
-    if(!s) return {...def};
+    if(!s) return {...def, baseColor:def.color};
     return {
-      name:def.name, // rotation code never changes
+      name:def.name,
       fullName:s.fullName||def.fullName,
       init:s.init||def.init,
-      color:readableColor(s.color||def.color),
+      baseColor:s.color||def.color,
       base10k:(s.pace10kSecPerMi!=null)?s.pace10kSecPerMi:def.base10k
     };
   });
-
-  // Anything in the sheet flagged isSupport, or that doesn't match a rotation
-  // code at all, becomes a selectable person (Log Leg dropdown etc.) without
-  // being part of the fixed rotation/schedule.
   const rotationCodes=DEFAULT_RUNNERS.map(r=>r.name);
   const extras=rows.filter(r=>r.isSupport || !rotationCodes.includes(r.code));
-  SUPPORT = extras.length ? extras.map(s=>({
-    name:s.code, fullName:s.fullName||s.code, init:s.init||s.code, color:readableColor(s.color||'#888888')
-  })) : DEFAULT_SUPPORT.map(r=>({...r, color:readableColor(r.color)}));
-
+  SUPPORT = extras.length ? extras.map(s=>({ name:s.code, fullName:s.fullName||s.code, init:s.init||s.code, baseColor:s.color||'#888888' }))
+                          : DEFAULT_SUPPORT.map(r=>({...r, baseColor:r.color}));
+  recolorPeople();
+}
+// Re-derive display colors for the current theme (light/dark) from the sheet colors.
+function recolorPeople(){
+  RUNNERS.concat(SUPPORT).forEach(r=>{ r.color=readableColor(r.baseColor||r.color); });
   RUNNER_COLORS={};
   RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
   ALL_PEOPLE=[...RUNNERS, ...SUPPORT];
 }
 
-async function loadRoster(){
-  try{
-    const cached=localStorage.getItem(ROSTER_CACHE_KEY);
-    if(cached) applyRoster(JSON.parse(cached));
-  }catch(e){/* ignore cache errors */}
-  if(!sheetConfigured()) return;
-  try{
-    const res=await fetch(SHEET_API_URL+'?action=runners',{method:'GET'});
-    if(!res.ok) return;
-    const data=await res.json();
-    if(data.runners && data.runners.length){
-      applyRoster(data.runners);
-      try{ localStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(data.runners)); }catch(e){/* ignore */}
-    }
-  }catch(err){
-    console.error('loadRoster error', err);
-  }
-}
-
-// ---- Race-level settings (start hour, total miles): fetched once, cached locally ----
+// ---------- Settings / race clock ----------
 function applySettings(s){
   if(!s) return;
-  if(s.startHour!=null && !isNaN(s.startHour)) START_HOUR=s.startHour;
+  if(s.startHour!=null && !isNaN(s.startHour)) settingsStartHour=s.startHour;
   if(s.totalMiles!=null && !isNaN(s.totalMiles)) TOTAL_MILES=s.totalMiles;
+  updateStartHour();
+}
+// Hours since midnight (Pacific) for a Date — the race clock runs on Pacific time.
+function ptHours(d){
+  const p=new Intl.DateTimeFormat('en-US',{timeZone:RACE_TZ,hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(d);
+  const g=t=>+(p.find(x=>x.type===t)||{value:0}).value;
+  return g('hour')+g('minute')/60+g('second')/3600;
+}
+// Clock times everywhere are "start + elapsed", so anchor to the real gun time once it's known.
+function updateStartHour(){
+  START_HOUR = RACE_CFG.actualStart ? ptHours(RACE_CFG.actualStart)
+             : RACE_CFG.raceStart ? ptHours(RACE_CFG.raceStart) : settingsStartHour;
   updateHeaderMeta();
 }
 function updateHeaderMeta(){
@@ -1064,158 +1486,30 @@ function updateHeaderMeta(){
     : fmtClock(START_HOUR,0).toUpperCase();
   if(distEl) distEl.textContent=(Math.round(TOTAL_MILES*10)/10)+' MI';
 }
-async function loadSettings(){
-  try{
-    const cached=localStorage.getItem(SETTINGS_CACHE_KEY);
-    if(cached) applySettings(JSON.parse(cached));
-  }catch(e){/* ignore cache errors */}
-  if(!sheetConfigured()) return;
-  try{
-    const res=await fetch(SHEET_API_URL+'?action=settings',{method:'GET'});
-    if(!res.ok) return;
-    const data=await res.json();
-    if(data.settings){
-      applySettings(data.settings);
-      try{ localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(data.settings)); }catch(e){/* ignore */}
-    }
-  }catch(err){
-    console.error('loadSettings error', err);
-  }
-}
-
-async function fetchLegs(silent){
-  if(!sheetConfigured()){
-    setSyncStatus('err','Not connected — add your Sheet URL in the code');
-    return;
-  }
-  if(!silent) setSyncStatus('syncing','Syncing…');
-  try{
-    const res=await fetch(SHEET_API_URL+'?action=list',{method:'GET'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    actualLegs = (data.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
-    applyOverrides(data.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    // Don't yank the form out from under someone mid-entry on the Log page
-    const activePage=document.querySelector('.page.active');
-    const onLogPage = activePage && activePage.id==='page-log' && document.activeElement && ['INPUT','SELECT'].includes(document.activeElement.tagName);
-    autoLand();
-    if(activePage && activePage.id==='page-logistics'){
-      // logistics view doesn't depend on leg data — leave it (and any open form) alone
-    } else if(!onLogPage){
-      renderPage(getActivePageId());
-    } else {
-      renderLog(); // safe: rebuilds form with same defaults, doesn't touch focus badly enough to block typing between polls
-    }
-  }catch(err){
-    setSyncStatus('err','Sync failed — check connection');
-    console.error('fetchLegs error', err);
-  }
-}
-
-function nowClock(){
-  const d=new Date();
-  let h=d.getHours(), m=d.getMinutes();
-  const ap = h>=12?'pm':'am';
-  h = h%12 || 12;
-  return h+':'+(m<10?'0':'')+m+ap;
-}
 
 function getActivePageId(){
   const el=document.querySelector('.page.active');
   return el ? el.id.replace('page-','') : 'dash';
 }
 
-async function postToSheet(params){
-  setSyncStatus('syncing','Saving…');
-  const res=await fetch(SHEET_API_URL,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'}, // avoids CORS preflight against Apps Script
-    body: JSON.stringify(params)
-  });
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  return res.json();
-}
-
-function manualSync(){
-  fetchLegs(false);
-  loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-  loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-  loadSettings().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-}
-
-async function clearLast(){
-  if(!actualLegs.length) return;
-  if(!confirm('Remove the most recently logged leg for everyone?')) return;
-  const msg=document.getElementById('log-msg');
-  try{
-    const result=await postToSheet({action:'clear-last'});
-    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    renderLog();
-  }catch(err){
-    console.error('clearLast error', err);
-    setSyncStatus('err','Clear failed — try again');
-  }
-}
-
-async function clearAll(){
-  if(!actualLegs.length) return;
-  if(!confirm('Clear ALL logged legs for everyone? This can\'t be undone.')) return;
-  if(!confirm('Really sure? This wipes the whole race log.')) return;
-  try{
-    const result=await postToSheet({action:'clear'});
-    actualLegs=[];
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    renderLog();
-  }catch(err){
-    console.error('clearAll error', err);
-    setSyncStatus('err','Clear failed — try again');
-  }
-}
-
-// ---- Live overrides: change runner/distance for an upcoming leg without touching the default plan ----
+// ---------- Plan adjustments (runner / distance for an upcoming leg) ----------
 function toggleAdjust(key){
   const el=document.getElementById('adjust-'+key);
   if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
-
 async function saveOverrideUI(key, legNumber){
   const runnerEl=document.getElementById('adjust-'+key+'-runner');
   const milesEl=document.getElementById('adjust-'+key+'-miles');
   const runner=runnerEl?runnerEl.value:null;
   const milesRaw=milesEl?milesEl.value:'';
   const miles=milesRaw===''?null:parseFloat(milesRaw);
-  try{
-    const result=await postToSheet({action:'setOverride', legNumber, runner, miles});
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    renderPage(getActivePageId());
-  }catch(err){
-    console.error('saveOverrideUI error', err);
-    setSyncStatus('err','Save failed — try again');
-  }
+  if(await postNow({action:'setOverride', legNumber, runner, miles})) renderPage(getActivePageId());
 }
-
 async function resetOverrideUI(legNumber){
-  try{
-    const result=await postToSheet({action:'clearOverride', legNumber});
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    renderPage(getActivePageId());
-  }catch(err){
-    console.error('resetOverrideUI error', err);
-    setSyncStatus('err','Reset failed — try again');
-  }
+  if(await postNow({action:'clearOverride', legNumber})) renderPage(getActivePageId());
 }
+// ============ END DATA LAYER ============
 
-function startPolling(){
-  if(syncTimer) clearInterval(syncTimer);
-  syncTimer=setInterval(()=>fetchLegs(true), SYNC_INTERVAL_MS);
-}
-// ============ END SHEETS SYNC ============
 
 function getActualElapsed(){return actualLegs.reduce((a,l)=>a+l.dur,0);}
 function getActualMiles(){return actualLegs.reduce((a,l)=>a+parseFloat(l.miles),0);}
@@ -1260,129 +1554,7 @@ function goPage(id,btn,byUser){
   if(!byUser) window.scrollTo(0,0);
 }
 function renderPage(id){
-  ({logistics:renderLogistics,dash:renderDash,projected:renderProjected,log:renderLog,actual:renderActual})[id]();
-}
-
-function renderDash(){
-  const el=document.getElementById('page-dash');
-  const done=actualLegs.length;
-  const actMiles=getActualMiles();
-  const actElapsed=getActualElapsed();
-  const nextEff=getEffectiveLeg(done, actMiles);
-  const onDeckEff=nextEff?getEffectiveLeg(done+1, actMiles+nextEff.miles):null;
-  const projRemain=SCHEDULE.slice(done+2).reduce((a,l)=>a+l.dur,0) + (nextEff?nextEff.dur||0:0) + (onDeckEff?onDeckEff.dur||0:0);
-  const projFinish=actElapsed+projRemain;
-  const progress=Math.min(100,Math.round(actMiles/TOTAL_MILES*100));
-  const actGain=getActualGain();
-  const elevProgress=Math.min(100,Math.round(actGain/getTotalGainFt()*100));
-  const lastLeg=done?actualLegs[done-1]:null;
-
-  let html=`
-  <div class="stat-grid">
-    <div class="stat-cell"><div class="stat-cell-label">Miles Done</div><div class="stat-cell-val">${Math.round(actMiles*10)/10}</div><div class="stat-cell-sub">of ${TOTAL_MILES} total</div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Legs Done</div><div class="stat-cell-val">${done}<span style="font-size:16px;opacity:.4"> / ${TOTAL_LEGS}</span></div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Elapsed</div><div class="stat-cell-val" style="font-size:22px">${actElapsed>0?fmtDur(actElapsed):'0m'}</div><div class="stat-cell-sub">${fmtClock(START_HOUR,actElapsed)}</div></div>
-    <div class="stat-cell highlight"><div class="stat-cell-label">Proj Finish</div><div class="stat-cell-val" style="font-size:22px">${fmtClock(START_HOUR,projFinish)}</div><div class="stat-cell-sub">${fmtDur(projFinish)}</div></div>
-  </div>
-
-  ${routeHTML(actMiles/TOTAL_MILES, nextEff?RUNNER_COLORS[nextEff.runner.name]:null)}
-  <div class="route-meta"><strong>${progress}%</strong> — ${Math.round(actMiles*10)/10} of ${TOTAL_MILES} mi · Santa Monica → Las Vegas</div>
-  <div class="progress-wrap" style="margin-top:14px">
-    <div class="progress-meta">
-      <span style="color:var(--blue);opacity:.7">▲ ELEVATION</span>
-      <span>${elevProgress}% — ${actGain.toLocaleString()} ft climbed</span>
-      <span style="opacity:.5">${getTotalGainFt().toLocaleString()} ft total</span>
-    </div>
-    <div class="progress-track" style="height:9px">
-      <div class="progress-fill" style="width:${elevProgress}%"></div>
-    </div>
-  </div>`;
-
-  if(nextEff){
-    const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--blue)';
-    html+=`<div class="now-card" style="border-color:${nColor}">
-      <div class="now-runner-name" style="color:${nColor}">${nextEff.runner.fullName}${nextEff.overridden?' <span style="font-size:11px;letter-spacing:.1em;color:var(--blue);opacity:.7;font-family:var(--mono)">· ADJUSTED</span>':''}</div>
-      <div class="now-leg-info">LEG ${done+1} &nbsp;&bull;&nbsp; MILE ${Math.round(nextEff.startMile*10)/10} &ndash; ${Math.round((nextEff.startMile+nextEff.miles)*10)/10} &nbsp;&bull;&nbsp; ${Math.round(nextEff.miles*10)/10} MI &nbsp;&bull;&nbsp; ▲${nextEff.gainFt}ft &nbsp;&bull;&nbsp; ${nextEff.condition.toUpperCase()}</div>
-      <div class="now-stats">
-        <div><div class="now-stat-label">Proj Pace</div><div class="now-stat-val">${fmtPace(nextEff.pace)}<span style="font-size:13px;opacity:.5">/mi</span></div></div>
-        <div><div class="now-stat-label">Proj Duration</div><div class="now-stat-val">${fmtDur(nextEff.dur)}</div></div>
-        <div><div class="now-stat-label">Est Handoff</div><div class="now-stat-val" style="font-size:22px">${nextEff.dur?fmtClock(START_HOUR,actElapsed+nextEff.dur):'--'}</div></div>
-      </div>
-      <button class="btn-ghost" style="margin-top:14px" onclick="toggleAdjust('next')">✎ ADJUST RUNNER / DISTANCE</button>
-      <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)">
-        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
-          <div><div class="form-label">Runner</div>
-            <select id="adjust-next-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
-          </div>
-          <div><div class="form-label">Miles</div>
-            <input type="number" id="adjust-next-miles" value="${nextEff.miles}" min="0.1" max="30" step="0.1">
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-ghost" style="border-color:var(--blue);color:var(--blue)" onclick="saveOverrideUI('next',${done+1})">SAVE</button>
-          ${nextEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+1})">RESET TO PLAN</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  } else {
-    html+=`<div class="now-card" style="text-align:center;padding:28px"><div class="now-runner-name">FINISH</div><div class="now-leg-info">LAS VEGAS SIGN REACHED</div></div>`;
-  }
-
-  if(onDeckEff){
-    const odColor=RUNNER_COLORS[onDeckEff.runner.name]||'var(--blue)';
-    html+=`<div class="deck-card" style="border-color:${odColor}40;flex-wrap:wrap;gap:10px">
-      <div>
-        <div class="deck-label" style="color:${odColor}">On Deck — Leg ${done+2}${onDeckEff.overridden?' · ADJUSTED':''}</div>
-        <div class="deck-name" style="color:${odColor}">${onDeckEff.runner.fullName}</div>
-      </div>
-      <div class="deck-info">
-        <strong>${fmtPace(onDeckEff.pace)}/mi</strong>
-        ${Math.round(onDeckEff.miles*10)/10} mi &bull; ${fmtDur(onDeckEff.dur)} est
-      </div>
-      <button class="btn-ghost" style="width:100%" onclick="toggleAdjust('deck')">✎ ADJUST</button>
-      <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid var(--line)">
-        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
-          <div><div class="form-label">Runner</div>
-            <select id="adjust-deck-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
-          </div>
-          <div><div class="form-label">Miles</div>
-            <input type="number" id="adjust-deck-miles" value="${onDeckEff.miles}" min="0.1" max="30" step="0.1">
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-ghost" style="border-color:var(--blue);color:var(--blue)" onclick="saveOverrideUI('deck',${done+2})">SAVE</button>
-          ${onDeckEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+2})">RESET TO PLAN</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  }
-
-  html+=`<div class="section-head">Runner Status</div>
-  <div class="runner-grid">
-    ${RUNNERS.map(r=>{
-      const rl=actualLegs.filter(l=>l.runner===r.name);
-      const actMi=rl.reduce((a,l)=>a+parseFloat(l.miles),0);
-      const projTotalMi=runnerTotalProjMiles(r.name);
-      const projTotalGain=runnerTotalProjGain(r.name);
-      const actGainR=rl.reduce((a,l)=>a+(l.gainFt||0),0);
-      const ap=getRunnerActualPace(r.name);
-      const isNext=nextEff&&nextEff.runner.name===r.name;
-      const rColor=RUNNER_COLORS[r.name]||'var(--blue)';
-      return `<div class="runner-cell${isNext?' is-next':''}" style="${isNext?'border-color:'+rColor:''}">
-        <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${r.init}</div><div class="runner-name-cell" style="color:${rColor}">${r.fullName}</div></div>
-        <div class="runner-miles-cell" style="color:${rColor}">${Math.round(actMi*10)/10} / ${Math.round(projTotalMi*10)/10} mi</div>
-        <div class="runner-stats-cell">▲ ${actGainR.toLocaleString()} / ${projTotalGain.toLocaleString()} ft &nbsp;&bull;&nbsp; ${rl.length} legs${ap?' &bull; '+fmtPace(ap)+'/mi':''}</div>
-      </div>`;
-    }).join('')}
-  </div>`;
-
-  if(lastLeg){
-    const lastR=RUNNERS.find(r=>r.name===lastLeg.runner)||{fullName:lastLeg.runner};
-    html+=`<div style="text-align:center;margin-top:14px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--ink-faint)">LAST LOGGED: ${lastR.fullName.toUpperCase()} &bull; ${lastLeg.miles} MI &bull; ${fmtDur(lastLeg.dur)} &bull; ${fmtPace(lastLeg.dur/parseFloat(lastLeg.miles)*60)}/MI</div>`;
-  }
-
-  el.innerHTML=html;
-  placeRouteDot(actMiles/TOTAL_MILES);
+  ({logistics:renderLogistics,dash:renderDash,splits:renderSplits,log:renderLog})[id]();
 }
 
 // ---- Route map: the Sharpie line traced from the TSP logo ----
@@ -1407,175 +1579,6 @@ function placeRouteDot(frac){
   dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
 }
 
-function renderProjected(){
-  const el=document.getElementById('page-projected');
-  const done=actualLegs.length;
-  const tH=Math.floor(totalProjMins/60),tM=Math.round(totalProjMins%60);
-
-  const rows=SCHEDULE.map((leg,i)=>{
-    const isDone=i<done, isCur=i===done;
-    const tag=`<span class="tag tag-${leg.condition.toLowerCase()}">${leg.condition}</span>`;
-    const rColor=RUNNER_COLORS[leg.runner.name]||'var(--blue)';
-    const rowBg=isCur?'var(--blue-tint)':isDone?'':'';
-    return `<tr class="${isDone?'is-done':isCur?'is-current':''}" style="${rowBg?'background:'+rowBg:''}">
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${leg.legNum}</td>
-      <td><div style="display:flex;align-items:center;gap:7px">
-        <div class="av" style="width:24px;height:24px;font-size:10px;border-color:${rColor};color:${rColor}">${leg.runner.init}</div>
-        <span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:${rColor}">${leg.runner.init}</span>
-      </div></td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtClock(START_HOUR,leg.elapsedStart)}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${leg.startMile}</td>
-      <td style="font-family:var(--display);font-weight:900;font-size:16px;letter-spacing:.04em;color:var(--blue)">${leg.miles} mi</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:${leg.gainFt>400?'var(--red)':leg.gainFt>150?'var(--blue)':'var(--ink-dim)'}">▲${leg.gainFt}</td>
-      <td class="pace-val">${fmtPace(leg.pace)}/mi</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(leg.dur)}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-faint)">${dayLabel(leg.elapsedStart)}</td>
-      <td>${tag}</td>
-    </tr>`;
-  }).join('');
-
-  el.innerHTML=`
-  <div class="stat-grid">
-    <div class="stat-cell"><div class="stat-cell-label">Total Legs</div><div class="stat-cell-val">${TOTAL_LEGS}</div></div>
-    <div class="stat-cell highlight"><div class="stat-cell-label">Proj Finish</div><div class="stat-cell-val" style="font-size:22px">${fmtClock(START_HOUR,totalProjMins)}</div><div class="stat-cell-sub">Day 2</div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Total Time</div><div class="stat-cell-val" style="font-size:22px">${tH}h ${String(tM).padStart(2,'0')}m</div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Avg Pace</div><div class="stat-cell-val" style="font-size:22px">${fmtPace(totalProjMins*60/TOTAL_MILES)}</div><div class="stat-cell-sub">per mile</div></div>
-  </div>
-  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-    <span class="tag tag-night">NIGHT — faster</span>
-    <span class="tag tag-heat">HEAT — slower</span>
-    <span class="tag tag-dawn">DAWN</span>
-    <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-faint);align-self:center">Short legs run faster · Elevation penalty baked in (${getTotalGainFt().toLocaleString()}ft gain)</span>
-  </div>
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-    ${RUNNERS.map(r=>`<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 9px;border:1px solid ${RUNNER_COLORS[r.name]};color:${RUNNER_COLORS[r.name]};background:${RUNNER_COLORS[r.name]}18">${esc(r.init)} · ${esc(r.fullName)}</span>`).join('')}
-  </div>
-  <div class="tbl-wrap"><div class="tbl-scroll"><table>
-    <thead><tr>
-      <th style="width:28px">#</th><th style="width:100px">Runner</th><th style="width:64px">Clock</th>
-      <th style="width:44px">Mile</th><th style="width:56px">Leg</th>
-      <th style="width:52px">Gain</th>
-      <th style="width:72px">Pace</th><th style="width:56px">Time</th>
-      <th style="width:58px">Day</th><th>Cond</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div></div>`;
-}
-
-function renderLog(){
-  const el=document.getElementById('page-log');
-  const done=actualLegs.length;
-  const actMiles=getActualMiles();
-  const nextEff=getEffectiveLeg(done, actMiles);
-  const defRunner=nextEff?nextEff.runner.name:RUNNERS[0].name;
-  const defMiles=nextEff?nextEff.miles:5;
-
-  let html=`<div class="section-head">Log Completed Leg</div>`;
-
-  if(nextEff){
-    html+=`<div class="hint-box">Next projected: <strong>${nextEff.runner.fullName}</strong> &bull; ${Math.round(nextEff.miles*10)/10} mi &bull; <strong>${fmtPace(nextEff.pace)}/mi</strong> projected &bull; Leg ${done+1}${nextEff.overridden?' &bull; <span style="color:var(--blue)">ADJUSTED</span>':''}</div>`;
-  }
-
-  html+=`<div class="form-card">
-    <div class="form-row">
-      <div><div class="form-label">Runner</div>
-        <select id="log-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===defRunner?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
-      </div>
-      <div><div class="form-label">Miles Run</div>
-        <input type="number" id="log-miles" value="${defMiles}" min="0.1" max="30" step="0.1">
-      </div>
-      <div><div class="form-label">Duration (mm:ss or mins)</div>
-        <input type="text" id="log-dur" placeholder="e.g. 42:30">
-      </div>
-    </div>
-    <div style="display:flex;align-items:center">
-      <button class="btn" onclick="submitLeg()">LOG LEG</button>
-      <span id="log-msg"></span>
-    </div>
-  </div>`;
-
-  if(done>0){
-    html+=`<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div class="section-head">Recent Legs</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button class="btn-ghost" onclick="clearLast()">CLEAR LAST</button>
-        <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(200,49,43,0.4);color:var(--red)">CLEAR ALL</button>
-      </div>
-    </div>
-    <div class="tbl-wrap"><div class="tbl-scroll" style="max-height:280px"><table>
-      <thead><tr><th style="width:28px">#</th><th>Runner</th><th style="width:50px">Miles</th><th style="width:60px">Time</th><th style="width:72px">Pace</th><th style="width:76px"></th></tr></thead>
-      <tbody>${actualLegs.slice().reverse().slice(0,10).map((l,ri)=>{
-        const idx=actualLegs.length-1-ri;
-        const av=ALL_PEOPLE.find(p=>p.name===l.runner)||{init:'?'};
-        return `<tr>
-          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${idx+1}</td>
-          <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
-          <td style="font-family:'Space Mono',monospace;font-size:10px">${l.miles}</td>
-          <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(l.dur)}</td>
-          <td class="pace-val">${fmtPace(l.dur/parseFloat(l.miles)*60)}/mi</td>
-          <td><button class="btn-ghost" onclick="deleteLeg(${idx})">REMOVE</button></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div></div>`;
-  } else {
-    html+=`<div class="empty"><div class="empty-big">NO LEGS YET</div>Log the first leg above to begin tracking.</div>`;
-  }
-
-  el.innerHTML=html;
-}
-
-function parseDur(str){
-  str=str.trim();
-  if(str.includes(':')){ const p=str.split(':'); return parseFloat(p[0])+parseFloat(p[1]||0)/60; }
-  return parseFloat(str);
-}
-async function submitLeg(){
-  const runner=document.getElementById('log-runner').value;
-  const miles=parseFloat(document.getElementById('log-miles').value);
-  const dur=parseDur(document.getElementById('log-dur').value);
-  const msg=document.getElementById('log-msg');
-  const btn=document.querySelector('#page-log .btn');
-  if(!runner||isNaN(miles)||miles<=0||isNaN(dur)||dur<=0){
-    msg.textContent=' ← fill in all fields'; msg.style.color='var(--red)'; return;
-  }
-  if(!sheetConfigured()){
-    msg.textContent=' ← connect your Google Sheet first'; msg.style.color='var(--red)'; return;
-  }
-  if(btn) btn.disabled=true;
-  msg.textContent=' saving…'; msg.style.color='var(--ink-dim)';
-  const gainFt=effectiveGain(getActualMiles(), miles, 0, miles) || 0;
-  try{
-    const result=await postToSheet({action:'add', runner, miles, dur, gainFt});
-    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    msg.textContent=' ✓ logged'; msg.style.color='var(--green)';
-    document.getElementById('log-dur').value='';
-    setTimeout(()=>renderLog(),500);
-  }catch(err){
-    console.error('submitLeg error', err);
-    msg.textContent=' ✗ save failed — try again'; msg.style.color='var(--red)';
-    setSyncStatus('err','Save failed');
-  }finally{
-    if(btn) btn.disabled=false;
-  }
-}
-async function deleteLeg(idx){
-  const leg=actualLegs[idx];
-  if(!leg) return;
-  if(!confirm('Remove this leg for everyone?')) return;
-  try{
-    const result=await postToSheet({action:'delete', id: leg.id});
-    actualLegs = (result.legs||[]).map(l=>({id:l.id, runner:l.runner, miles:parseFloat(l.miles), dur:parseFloat(l.dur), gainFt:parseFloat(l.gainFt)||0}));
-    applyOverrides(result.overrides);
-    setSyncStatus('ok','Synced '+nowClock());
-    renderLog();
-  }catch(err){
-    console.error('deleteLeg error', err);
-    setSyncStatus('err','Delete failed — try again');
-  }
-}
-
 // Ahead/behind as ±h:mm:ss — negative = faster than plan (green), positive = slower (red)
 function fmtDiff(sec){
   const t=Math.round(Math.abs(sec)), h=Math.floor(t/3600), m=Math.floor(t%3600/60), ss=t%60;
@@ -1583,91 +1586,456 @@ function fmtDiff(sec){
 }
 function diffCls(sec){ return sec==null||Math.abs(sec)<5 ? 'diff-ok' : sec>0 ? 'diff-pos' : 'diff-neg'; }
 
-function renderActual(){
-  const el=document.getElementById('page-actual');
-  if(!actualLegs.length){
-    el.innerHTML=`<div class="empty"><div class="empty-big">NO DATA YET</div>Use Log Leg to record completed legs.</div>`;return;
-  }
-  const totMi=getActualMiles(),totMin=getActualElapsed();
-  const avgPace=totMi?totMin/totMi*60:0;
-  const projRemain=SCHEDULE.slice(actualLegs.length).reduce((a,l)=>a+l.dur,0);
+// ============ RACE: start, handoff, live timer ============
+function fmtHMS(mins){
+  if(mins==null||isNaN(mins)) return '--';
+  const t=Math.max(0,Math.round(mins*60)), h=Math.floor(t/3600), m=Math.floor(t%3600/60), s=t%60;
+  return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+// "42:30", "1:02:05", "42" (minutes) → minutes
+function parseDurInput(str){
+  str=String(str||'').trim(); if(!str) return NaN;
+  const p=str.split(':').map(x=>parseFloat(x));
+  if(p.some(isNaN)) return NaN;
+  if(p.length===3) return p[0]*60+p[1]+p[2]/60;
+  if(p.length===2) return p[0]+p[1]/60;
+  return p[0];
+}
+function raceStarted(){ return !!RACE_CFG.actualStart || actualLegs.length>0; }
+// When did the runner who's out there right now start?
+function currentLegStart(){
+  const last=actualLegs[actualLegs.length-1];
+  if(last && last.end){ const d=new Date(last.end); if(!isNaN(d)) return d; }
+  const st=RACE_CFG.actualStart||RACE_CFG.raceStart;
+  return st ? new Date(st.getTime()+getActualElapsed()*60000) : null;
+}
+function currentLegMinutes(){
+  const s=currentLegStart(); return s ? (Date.now()-s.getTime())/60000 : null;
+}
+function tickLegTimer(){
+  const el=document.getElementById('leg-timer');
+  if(!el) return;
+  const m=currentLegMinutes();
+  el.textContent = m!=null && m>=0 ? fmtHMS(m) : '0:00:00';
+}
 
-  let elapsed=0, cumDiff=0;
-  const rows=actualLegs.map((l,i)=>{
+let lastHandoffAt=0;
+function doHandoff(){
+  if(Date.now()-lastHandoffAt<3000){ toast('Just logged a handoff — give it a second.'); return; }
+  const done=actualLegs.length;
+  const eff=getEffectiveLeg(done, getActualMiles());
+  if(!eff) return;
+  const start=currentLegStart();
+  if(!start){ toast('Start the race clock first.'); return; }
+  const end=new Date();
+  const dur=(end-start)/60000;
+  if(dur<1){ toast("That's under a minute — looks like a double tap, so it wasn't logged."); return; }
+  const nxt=getEffectiveLeg(done+1, getActualMiles()+eff.miles);
+  const msg=`${eff.runner.fullName} finished leg ${done+1} (${Math.round(eff.miles*10)/10} mi) in ${fmtHMS(dur)}?`+(nxt?`\n\nNext up: ${nxt.runner.fullName}.`:'\n\nThat’s the last leg — Las Vegas!')+(dur>240?'\n\n(That’s over 4 hours — double-check before logging.)':'');
+  if(!confirm(msg)) return;
+  lastHandoffAt=Date.now();
+  queueAndSend('add', {
+    legNumber: done+1, runner: eff.runner.name, miles: eff.miles,
+    dur: Math.round(dur*1000)/1000, gainFt: eff.gainFt||0,
+    start: start.toISOString(), end: end.toISOString()
+  });
+  if(navigator.vibrate) try{ navigator.vibrate(60); }catch(e){}
+}
+function doStartRace(){
+  if(!confirm('Start the race clock now?\n\nTap this the moment the first runner leaves the pier.')) return;
+  const at=new Date();
+  RACE_CFG.actualStart=at; updateStartHour();
+  queueAndSend('startRace', { at: at.toISOString() });
+}
+
+// ============ RACE PAGE ============
+function renderDash(){
+  const el=document.getElementById('page-dash');
+  const done=actualLegs.length;
+  const actMiles=getActualMiles();
+  const actElapsed=getActualElapsed();
+  const nextEff=getEffectiveLeg(done, actMiles);
+  const onDeckEff=nextEff?getEffectiveLeg(done+1, actMiles+nextEff.miles):null;
+  const remain=projectRemaining(done, actMiles);
+  const projFinish=actElapsed+remain.total;
+  const progress=Math.min(100,Math.round(actMiles/TOTAL_MILES*100));
+  const actGain=getActualGain();
+  const elevProgress=Math.min(100,Math.round(actGain/getTotalGainFt()*100));
+  const started=raceStarted();
+  const cum=cumulativeVsPlan();
+
+  let html='';
+  if(ME && nextEff && nextEff.runner.name===ME) html+=`<div class="me-banner now">You're running now — leg ${done+1}, ${Math.round(nextEff.miles*10)/10} mi</div>`;
+  else if(ME && onDeckEff && onDeckEff.runner.name===ME) html+=`<div class="me-banner">You're up next — leg ${done+2}, ${Math.round(onDeckEff.miles*10)/10} mi${nextEff&&nextEff.dur&&started?` · in about ${fmtDur(Math.max(0,nextEff.dur-(currentLegMinutes()||0)))}`:''}</div>`;
+
+  if(nextEff){
+    const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--blue)';
+    const legStart=currentLegStart();
+    const estHandoff = started && legStart && nextEff.dur ? clockStrPT(new Date(legStart.getTime()+nextEff.dur*60000)) : (nextEff.dur?fmtClock(START_HOUR,actElapsed+nextEff.dur):'--');
+    html+=`<div class="now-card" style="border-color:${nColor}">
+      <div class="now-runner-name" style="color:${nColor}">${esc(nextEff.runner.fullName)}${nextEff.overridden?' <span style="font-size:11px;letter-spacing:.1em;color:var(--blue);opacity:.7;font-family:var(--mono)">· ADJUSTED</span>':''}</div>
+      <div class="now-leg-info">LEG ${done+1} &nbsp;&bull;&nbsp; MILE ${Math.round(nextEff.startMile*10)/10} &ndash; ${Math.round((nextEff.startMile+nextEff.miles)*10)/10} &nbsp;&bull;&nbsp; ${Math.round(nextEff.miles*10)/10} MI &nbsp;&bull;&nbsp; ▲${nextEff.gainFt}ft &nbsp;&bull;&nbsp; ${nextEff.condition.toUpperCase()}</div>
+      ${started ? `<div class="leg-timer-wrap"><div class="now-stat-label">On this leg</div><div class="leg-timer" id="leg-timer">${fmtHMS(currentLegMinutes())}</div></div>` : ''}
+      <div class="now-stats">
+        <div><div class="now-stat-label">Proj Pace</div><div class="now-stat-val">${fmtPace(nextEff.pace)}<span style="font-size:13px;opacity:.5">/mi</span></div></div>
+        <div><div class="now-stat-label">Proj Time</div><div class="now-stat-val">${fmtHMS(nextEff.dur)}</div></div>
+        <div><div class="now-stat-label">Est Handoff</div><div class="now-stat-val" style="font-size:22px">${estHandoff}</div></div>
+      </div>
+      ${started
+        ? `<button class="btn btn-handoff" onclick="doHandoff()">✓ ${esc(nextEff.runner.fullName)} done — hand off</button>`
+        : `<button class="btn btn-handoff" onclick="doStartRace()">▶ Start race clock</button>
+           <div class="handoff-hint">Tap when the first runner leaves the pier${RACE_CFG.raceStart?` · planned ${fmtPT(RACE_CFG.raceStart,{weekday:'short',hour:'numeric',minute:'2-digit'})} PT`:''}</div>`}
+      <div class="now-actions">
+        <button class="btn-ghost" onclick="toggleAdjust('next')">✎ ADJUST RUNNER / DISTANCE</button>
+        <button class="btn-ghost" onclick="goPage('log')">FIX A LEG</button>
+      </div>
+      <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)">
+        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+          <div><div class="form-label">Runner</div>
+            <select id="adjust-next-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+          </div>
+          <div><div class="form-label">Miles</div>
+            <input type="number" id="adjust-next-miles" value="${nextEff.miles}" min="0.1" max="30" step="0.1" inputmode="decimal">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost accent" onclick="saveOverrideUI('next',${done+1})">SAVE</button>
+          ${nextEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+1})">RESET TO PLAN</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  } else {
+    html+=`<div class="now-card" style="text-align:center;padding:28px"><div class="now-runner-name">FINISH</div><div class="now-leg-info">LAS VEGAS SIGN REACHED · ${fmtHMS(actElapsed)}</div></div>`;
+  }
+
+  if(onDeckEff){
+    const odColor=RUNNER_COLORS[onDeckEff.runner.name]||'var(--blue)';
+    html+=`<div class="deck-card" style="border-color:${odColor}40;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="deck-label" style="color:${odColor}">On deck — leg ${done+2}${onDeckEff.overridden?' · adjusted':''}</div>
+        <div class="deck-name" style="color:${odColor}">${esc(onDeckEff.runner.fullName)}</div>
+      </div>
+      <div class="deck-info">
+        <strong>${fmtPace(onDeckEff.pace)}/mi</strong>
+        ${Math.round(onDeckEff.miles*10)/10} mi &bull; ${fmtDur(onDeckEff.dur)} est
+      </div>
+      <button class="btn-ghost" style="width:100%" onclick="toggleAdjust('deck')">✎ ADJUST</button>
+      <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid var(--line)">
+        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+          <div><div class="form-label">Runner</div>
+            <select id="adjust-deck-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+          </div>
+          <div><div class="form-label">Miles</div>
+            <input type="number" id="adjust-deck-miles" value="${onDeckEff.miles}" min="0.1" max="30" step="0.1" inputmode="decimal">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost accent" onclick="saveOverrideUI('deck',${done+2})">SAVE</button>
+          ${onDeckEff.overridden?`<button class="btn-ghost" onclick="resetOverrideUI(${done+2})">RESET TO PLAN</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  html+=`
+  <div class="stat-grid">
+    <div class="stat-cell"><div class="stat-cell-label">Miles Done</div><div class="stat-cell-val">${Math.round(actMiles*10)/10}</div><div class="stat-cell-sub">of ${TOTAL_MILES} total</div></div>
+    <div class="stat-cell"><div class="stat-cell-label">vs Plan</div><div class="stat-cell-val ${done?diffCls(cum):''}" style="font-size:22px">${done?fmtDiff(cum):'—'}</div><div class="stat-cell-sub">${done?(Math.abs(cum)<5?'on plan':cum<0?'ahead':'behind'):'no legs yet'}</div></div>
+    <div class="stat-cell"><div class="stat-cell-label">Elapsed</div><div class="stat-cell-val" style="font-size:22px">${started?fmtHMS(raceElapsedNow()):'0:00:00'}</div><div class="stat-cell-sub">${done} of ${TOTAL_LEGS} legs</div></div>
+    <div class="stat-cell highlight"><div class="stat-cell-label">Proj Finish</div><div class="stat-cell-val" style="font-size:22px">${fmtClock(START_HOUR,projFinish)}</div><div class="stat-cell-sub">${fmtHMS(projFinish)} total</div></div>
+  </div>
+
+  ${routeHTML(actMiles/TOTAL_MILES, nextEff?RUNNER_COLORS[nextEff.runner.name]:null)}
+  <div class="route-meta"><strong>${progress}%</strong> — ${Math.round(actMiles*10)/10} of ${TOTAL_MILES} mi · Santa Monica → Las Vegas</div>
+  <div class="progress-wrap" style="margin-top:14px">
+    <div class="progress-meta">
+      <span style="color:var(--blue)">▲ ELEVATION</span>
+      <span>${elevProgress}% — ${actGain.toLocaleString()} ft climbed</span>
+      <span style="opacity:.6">${getTotalGainFt().toLocaleString()} ft total</span>
+    </div>
+    <div class="progress-track" style="height:9px"><div class="progress-fill" style="width:${elevProgress}%"></div></div>
+  </div>
+
+  <div class="section-head">Runner Status</div>
+  <div class="runner-grid">
+    ${RUNNERS.map(r=>{
+      const rl=actualLegs.filter(l=>l.runner===r.name);
+      const actMi=rl.reduce((a,l)=>a+parseFloat(l.miles),0);
+      const projTotalMi=runnerTotalProjMiles(r.name);
+      const projTotalGain=runnerTotalProjGain(r.name);
+      const actGainR=rl.reduce((a,l)=>a+(l.gainFt||0),0);
+      const ap=getRunnerActualPace(r.name);
+      const isNext=nextEff&&nextEff.runner.name===r.name;
+      const rColor=RUNNER_COLORS[r.name]||'var(--blue)';
+      return `<div class="runner-cell${isNext?' is-next':''}${r.name===ME?' is-me':''}" style="${isNext?'border-color:'+rColor:''}">
+        <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${esc(r.init)}</div><div class="runner-name-cell" style="color:${rColor}">${esc(r.fullName)}</div></div>
+        <div class="runner-miles-cell" style="color:${rColor}">${Math.round(actMi*10)/10} / ${Math.round(projTotalMi*10)/10} mi</div>
+        <div class="runner-stats-cell">▲ ${actGainR.toLocaleString()} / ${projTotalGain.toLocaleString()} ft &nbsp;&bull;&nbsp; ${rl.length} legs${ap?' &bull; '+fmtPace(ap)+'/mi':''}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
+  const lastLeg=done?actualLegs[done-1]:null;
+  if(lastLeg){
+    const lastR=ALL_PEOPLE.find(r=>r.name===lastLeg.runner)||{fullName:lastLeg.runner};
+    html+=`<div class="last-logged">LAST LOGGED: ${esc(lastR.fullName).toUpperCase()} &bull; ${lastLeg.miles} MI &bull; ${fmtHMS(lastLeg.dur)} &bull; ${fmtPace(lastLeg.dur/parseFloat(lastLeg.miles)*60)}/MI${lastLeg.pending?' &bull; <span class="pending-tag">WAITING TO SEND</span>':''}</div>`;
+  }
+
+  el.innerHTML=html;
+  placeRouteDot(actMiles/TOTAL_MILES);
+}
+function clockStrPT(d){ return d.toLocaleTimeString('en-US',{timeZone:RACE_TZ,hour:'numeric',minute:'2-digit'}).replace(' ','').toLowerCase(); }
+function raceElapsedNow(){
+  const st=RACE_CFG.actualStart;
+  if(st) return Math.max(0,(Date.now()-st.getTime())/60000);
+  return getActualElapsed()+(currentLegMinutes()||0);
+}
+// Projected minutes for the legs still to run (uses live adjustments + actual paces so far).
+function projectRemaining(done, actMiles){
+  let mile=actMiles, total=0; const legs=[];
+  for(let k=done;k<TOTAL_LEGS;k++){
+    const eff=getEffectiveLeg(k, mile);
+    if(!eff) break;
+    legs.push(eff); total+=eff.dur||0; mile+=eff.miles;
+  }
+  return { total, legs };
+}
+// Seconds ahead (−) or behind (+) the original plan across completed legs.
+function cumulativeVsPlan(){
+  let c=0;
+  actualLegs.forEach((l,i)=>{ const p=SCHEDULE[i]; if(p) c+= l.dur*60 - p.pace*parseFloat(l.miles); });
+  return c;
+}
+
+// ============ SPLITS (plan vs actual, every leg) ============
+function renderSplits(){
+  const el=document.getElementById('page-splits');
+  const done=actualLegs.length;
+  const actMiles=getActualMiles(), actElapsed=getActualElapsed();
+  const remain=projectRemaining(done, actMiles);
+  const projFinish=actElapsed+remain.total;
+  const cum=cumulativeVsPlan();
+  const totMi=actMiles, avgPace=totMi?actElapsed/totMi*60:totalProjMins*60/TOTAL_MILES;
+
+  const wide=window.innerWidth>600;            // condition column only on wider screens
+  const ncols=wide?8:7;
+  let rows='', elapsed=0, running=0, lastDay=-1;
+  const dayRow=(e)=>{
+    const d=Math.floor((START_HOUR*60+e)/1440);
+    if(d===lastDay) return '';
+    lastDay=d;
+    const base=RACE_CFG.actualStart||RACE_CFG.raceStart;
+    let label='DAY '+(d+1);
+    if(base){ const dt=new Date(base.getTime()+(e)*60000); label+=' · '+fmtPT(dt,{weekday:'short',month:'short',day:'numeric'}).toUpperCase(); }
+    return `<tr class="day-row"><td colspan="${ncols}">${label}</td></tr>`;
+  };
+  actualLegs.forEach((l,i)=>{
     const pace=l.dur/parseFloat(l.miles)*60;
     const proj=SCHEDULE[i];
-    // time gained/lost on this leg: actual time vs the plan's pace over the miles actually run
     const diff=proj?(l.dur*60 - proj.pace*parseFloat(l.miles)):null;
-    if(diff!==null) cumDiff+=diff;
-    const diffStr=diff!==null?fmtDiff(diff):'';
-    const diffClass=diffCls(diff);
-    const cumStr=diff!==null?fmtDiff(cumDiff):'';
-    const cumClass=diffCls(diff!==null?cumDiff:null);
-    const clock=fmtClock(START_HOUR,elapsed);
-    elapsed+=l.dur;
-    const av=ALL_PEOPLE.find(p=>p.name===l.runner)||{init:'?'};
-    return `<tr>
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-faint)">${i+1}</td>
-      <td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="width:22px;height:22px;font-size:9px">${av.init}</div><span class="col-rname" style="font-family:var(--display);font-weight:900;font-size:15px;letter-spacing:.04em;color:var(--ink)">${av.init}</span></div></td>
-      <td class="col-clock" style="font-family:'Space Mono',monospace;font-size:10px">${clock}</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${l.miles}</td>
-      <td class="pace-val">${fmtPace(pace)}/mi</td>
-      <td style="font-family:'Space Mono',monospace;font-size:10px">${fmtDur(l.dur)}</td>
-      <td><span class="${diffClass}">${diffStr}</span></td>
-      <td><span class="${cumClass}">${cumStr}</span></td>
+    if(diff!=null) running+=diff;
+    const p=ALL_PEOPLE.find(x=>x.name===l.runner)||{init:'?',color:'var(--ink-dim)'};
+    rows+=dayRow(elapsed);
+    rows+=`<tr class="is-done-row${l.pending?' is-pending':''}" onclick="openFix('${esc(l.id)}')">
+      <td class="col-n">${i+1}</td>
+      <td class="col-runner"><div class="av av-sm" style="border-color:${p.color};color:${p.color}">${esc(p.init)}</div></td>
+      <td class="col-clock">${fmtClock(START_HOUR,elapsed)}</td>
+      <td class="col-mi">${Math.round(l.miles*10)/10}</td>
+      <td class="col-time"><span class="t-main">${fmtHMS(l.dur)}</span><span class="t-sub">${fmtPace(pace)}/mi</span></td>
+      <td class="col-diff"><span class="${diffCls(diff)}">${diff!=null?fmtDiff(diff):''}</span></td>
+      <td class="col-diff"><span class="${diffCls(diff!=null?running:null)}">${diff!=null?fmtDiff(running):''}</span></td>
+      ${wide?`<td class="col-cond">${l.pending?'<span class="pending-tag">waiting</span>':''}</td>`:''}
     </tr>`;
-  }).join('');
-  const aheadTxt = Math.abs(cumDiff)<5 ? 'Right on plan' : fmtDiff(cumDiff).slice(1)+(cumDiff<0?' ahead of plan':' behind plan');
+    elapsed+=l.dur;
+  });
+  remain.legs.forEach((eff,j)=>{
+    const i=done+j;
+    const tod=((START_HOUR*60+elapsed)/60)%24, cond=todLabel(tod);
+    rows+=dayRow(elapsed);
+    rows+=`<tr class="${j===0?'is-current':'is-upcoming'}${eff.runner.name===ME?' is-me':''}">
+      <td class="col-n">${i+1}</td>
+      <td class="col-runner"><div class="av av-sm" style="border-color:${eff.runner.color};color:${eff.runner.color}">${esc(eff.runner.init)}</div></td>
+      <td class="col-clock">${fmtClock(START_HOUR,elapsed)}</td>
+      <td class="col-mi">${Math.round(eff.miles*10)/10}${eff.overridden?'*':''}</td>
+      <td class="col-time"><span class="t-main">${fmtHMS(eff.dur)}</span><span class="t-sub">${fmtPace(eff.pace)}/mi</span></td>
+      <td class="col-diff">${j===0&&raceStarted()?'<span class="now-tag">running</span>':''}</td>
+      <td class="col-diff"></td>
+      ${wide?`<td class="col-cond"><span class="tag tag-${cond.toLowerCase()}">${cond}</span></td>`:''}
+    </tr>`;
+    elapsed+=eff.dur||0;
+  });
 
   const runnerSplits=RUNNERS.map(r=>{
     const rl=actualLegs.filter(l=>l.runner===r.name);
-    if(!rl.length) return '';
+    const projMi=runnerTotalProjMiles(r.name);
     const mi=rl.reduce((a,l)=>a+parseFloat(l.miles),0);
     const mn=rl.reduce((a,l)=>a+l.dur,0);
     return `<div class="runner-split-row">
-      <div class="runner-split-left"><div class="av">${r.init}</div><span class="runner-split-name">${r.fullName}</span></div>
-      <div class="runner-split-right"><strong>${fmtPace(mn/mi*60)}/mi</strong>${Math.round(mi*10)/10} mi &bull; ${rl.length} legs</div>
+      <div class="runner-split-left"><div class="av" style="border-color:${r.color};color:${r.color}">${esc(r.init)}</div><span class="runner-split-name">${esc(r.fullName)}</span></div>
+      <div class="runner-split-right"><strong>${rl.length?fmtPace(mn/mi*60)+'/mi':'—'}</strong>${Math.round(mi*10)/10} of ${Math.round(projMi*10)/10} mi &bull; ${rl.length} legs</div>
     </div>`;
   }).join('');
 
   el.innerHTML=`
   <div class="stat-grid">
-    <div class="stat-cell"><div class="stat-cell-label">Miles Covered</div><div class="stat-cell-val">${Math.round(totMi*10)/10}</div><div class="stat-cell-sub">of ${TOTAL_MILES}</div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Legs Done</div><div class="stat-cell-val">${actualLegs.length}<span style="font-size:16px;opacity:.4"> / ${TOTAL_LEGS}</span></div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Total Time</div><div class="stat-cell-val" style="font-size:22px">${fmtDur(totMin)}</div></div>
-    <div class="stat-cell"><div class="stat-cell-label">Actual Avg Pace</div><div class="stat-cell-val" style="font-size:22px">${fmtPace(avgPace)}</div></div>
+    <div class="stat-cell highlight"><div class="stat-cell-label">Proj Finish</div><div class="stat-cell-val" style="font-size:22px">${fmtClock(START_HOUR,projFinish)}</div><div class="stat-cell-sub">${fmtHMS(projFinish)} total</div></div>
+    <div class="stat-cell"><div class="stat-cell-label">vs Plan</div><div class="stat-cell-val ${done?diffCls(cum):''}" style="font-size:22px">${done?fmtDiff(cum):'—'}</div><div class="stat-cell-sub">${done?(Math.abs(cum)<5?'on plan':cum<0?'ahead':'behind'):'plan: '+fmtHMS(totalProjMins)}</div></div>
+    <div class="stat-cell"><div class="stat-cell-label">Legs</div><div class="stat-cell-val">${done}<span style="font-size:16px;opacity:.4"> / ${TOTAL_LEGS}</span></div></div>
+    <div class="stat-cell"><div class="stat-cell-label">${done?'Avg Pace':'Plan Pace'}</div><div class="stat-cell-val" style="font-size:22px">${fmtPace(avgPace)}</div><div class="stat-cell-sub">per mile</div></div>
   </div>
-  <div class="two-col">
-    <div class="info-block">
-      <div class="info-block-label">Runner Splits</div>
-      ${runnerSplits||'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--ink-faint)">No data</div>'}
-    </div>
-    <div class="info-block">
-      <div class="info-block-label">Updated Proj. Finish</div>
-      <div class="info-block-big">${fmtClock(START_HOUR,totMin+projRemain)}</div>
-      <div class="info-block-sub">${fmtDur(totMin+projRemain)} total</div>
-      <div class="ahead-line ${diffCls(cumDiff)}">${aheadTxt}</div>
-    </div>
+  <div class="splits-key">
+    <span class="tag tag-night">NIGHT</span><span class="tag tag-heat">HEAT</span><span class="tag tag-dawn">DAWN</span>
+    <span class="splits-note">Green = ahead of plan, red = behind. Tap a finished leg to fix it.${Object.keys(overrides).length?' * = adjusted distance.':''}</span>
   </div>
-  <div class="section-head">Leg by Leg</div>
-  <div class="tbl-wrap"><div class="tbl-scroll"><table class="actual-tbl">
+  <div class="tbl-wrap"><div class="tbl-scroll splits-scroll"><table class="splits-tbl">
     <thead><tr>
-      <th class="col-n">#</th><th class="col-runner">Runner</th><th class="col-clock">Clock</th>
-      <th class="col-mi">Miles</th><th class="col-pace">Pace</th><th class="col-time">Time</th><th class="col-diff">Leg ±</th><th class="col-diff">Total ±</th>
+      <th class="col-n">#</th><th class="col-runner"></th><th class="col-clock">Start</th><th class="col-mi">Mi</th>
+      <th class="col-time">Time</th><th class="col-diff">Leg ±</th><th class="col-diff">Total ±</th>${wide?'<th class="col-cond"></th>':''}
     </tr></thead>
     <tbody>${rows}</tbody>
-  </table></div></div>`;
+  </table></div></div>
+  <div class="section-head" style="margin-top:22px">Runner Splits</div>
+  <div class="info-block">${runnerSplits}</div>`;
+  // keep the current leg in view
+  const cur=el.querySelector('tr.is-current');
+  const sc=el.querySelector('.splits-scroll');
+  if(cur&&sc&&done>3) sc.scrollTop=Math.max(0,cur.offsetTop-sc.clientHeight/3);
+}
+
+// ============ FIX LEGS (manual entry + corrections) ============
+let fixOpenId=null;
+function openFix(id){ fixOpenId=id; goPage('log'); setTimeout(()=>{ const e=document.getElementById('fix-'+id); if(e) e.scrollIntoView({block:'center'}); },50); }
+function renderLog(){
+  const el=document.getElementById('page-log');
+  const done=actualLegs.length;
+  const nextEff=getEffectiveLeg(done, getActualMiles());
+  const st=RACE_CFG.actualStart;
+  const toLocalInput=d=>{ const z=new Date(d.getTime()-d.getTimezoneOffset()*60000); return z.toISOString().slice(0,19); };
+  let html=`<button class="btn-ghost" style="margin-bottom:14px" onclick="goPage('dash')">← BACK TO RACE</button>
+  <div class="section-head">Fix Legs</div>
+  <div class="hint-box">Use this if someone missed a handoff tap or a time is wrong. Changing a leg's time moves that handoff — the next leg's time adjusts to match.</div>
+
+  <div class="form-card">
+    <div class="form-label">Race start time</div>
+    <div class="fix-start">
+      <input type="datetime-local" step="1" id="fix-start" value="${st?toLocalInput(st):''}">
+      <button class="btn-ghost accent" onclick="saveStartTime()">SAVE</button>
+    </div>
+    <div class="fix-note">${st?'Recorded '+fmtPT(st,{weekday:'short',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'Not started yet — the Race tab has the start button.'}</div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-label" style="font-size:11px;margin-bottom:12px">Add a missed leg${nextEff?' — leg '+(done+1):''}</div>
+    <div class="form-row">
+      <div><div class="form-label">Runner</div>
+        <select id="log-runner">${RUNNERS.map(r=>`<option value="${r.name}"${nextEff&&r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+      </div>
+      <div><div class="form-label">Miles</div>
+        <input type="number" id="log-miles" value="${nextEff?nextEff.miles:5}" min="0.1" max="30" step="0.1" inputmode="decimal">
+      </div>
+      <div><div class="form-label">Time (h:mm:ss or mm:ss)</div>
+        <input type="text" id="log-dur" placeholder="e.g. 42:30" inputmode="numeric" autocomplete="off">
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+      <button class="btn" onclick="submitLeg()">ADD LEG</button>
+      <span id="log-msg"></span>
+    </div>
+  </div>`;
+
+  if(done){
+    html+=`<div class="section-head">Logged Legs</div><div class="fix-list">`;
+    actualLegs.slice().reverse().forEach((l,ri)=>{
+      const idx=done-1-ri, p=ALL_PEOPLE.find(x=>x.name===l.runner)||{init:'?',fullName:l.runner,color:'var(--ink-dim)'};
+      const open=fixOpenId===l.id, isLast=idx===done-1;
+      html+=`<div class="fix-row${open?' open':''}" id="fix-${esc(l.id)}">
+        <div class="fix-summary" onclick="fixOpenId=${open?'null':`'${esc(l.id)}'`};renderLog()">
+          <span class="fix-n">${idx+1}</span>
+          <div class="av av-sm" style="border-color:${p.color};color:${p.color}">${esc(p.init)}</div>
+          <span class="fix-name">${esc(p.fullName)}</span>
+          <span class="fix-meta">${Math.round(l.miles*10)/10} mi · ${fmtHMS(l.dur)}${l.pending?' · <span class="pending-tag">waiting</span>':''}</span>
+          <span class="fix-edit">${open?'CLOSE':'EDIT'}</span>
+        </div>
+        ${open?`<div class="fix-form">
+          <div class="form-row">
+            <div><div class="form-label">Runner</div><select id="fx-runner">${ALL_PEOPLE.map(r=>`<option value="${r.name}"${r.name===l.runner?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select></div>
+            <div><div class="form-label">Miles</div><input type="number" id="fx-miles" value="${l.miles}" step="0.1" inputmode="decimal"></div>
+            <div><div class="form-label">Time</div><input type="text" id="fx-dur" value="${fmtHMS(l.dur)}" inputmode="numeric"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-ghost accent" onclick="saveFix('${esc(l.id)}')">SAVE FIX</button>
+            ${isLast?`<button class="btn-ghost" onclick="removeLeg('${esc(l.id)}')">REMOVE THIS LEG</button>`:''}
+          </div>
+        </div>`:''}
+      </div>`;
+    });
+    html+=`</div>
+    <div style="margin-top:22px;text-align:right">
+      <button class="btn-ghost" onclick="clearAll()" style="border-color:rgba(200,49,43,0.4);color:var(--red)">CLEAR WHOLE RACE</button>
+    </div>`;
+  } else {
+    html+=`<div class="empty"><div class="empty-big">No legs yet</div>Handoffs logged from the Race tab show up here.</div>`;
+  }
+  el.innerHTML=html;
+}
+function submitLeg(){
+  const runner=document.getElementById('log-runner').value;
+  const miles=parseFloat(document.getElementById('log-miles').value);
+  const dur=parseDurInput(document.getElementById('log-dur').value);
+  const msg=document.getElementById('log-msg');
+  if(!runner||isNaN(miles)||miles<=0||isNaN(dur)||dur<=0){ msg.textContent=' ← fill in runner, miles and time'; msg.style.color='var(--red)'; return; }
+  const start=currentLegStart()||new Date(Date.now()-dur*60000);
+  const end=new Date(start.getTime()+dur*60000);
+  const done=actualLegs.length;
+  const gainFt=effectiveGain(getActualMiles(), miles, 0, miles)||0;
+  queueAndSend('add', { legNumber: done+1, runner, miles, dur: Math.round(dur*1000)/1000, gainFt, start: start.toISOString(), end: end.toISOString() });
+  toast('Leg '+(done+1)+' added.');
+}
+function saveFix(id){
+  const runner=document.getElementById('fx-runner').value;
+  const miles=parseFloat(document.getElementById('fx-miles').value);
+  const dur=parseDurInput(document.getElementById('fx-dur').value);
+  if(isNaN(miles)||miles<=0||isNaN(dur)||dur<=0){ toast('Check the miles and time.'); return; }
+  const leg=actualLegs.find(l=>l.id===id);
+  if(!leg) return;
+  if(leg.pending && id.startsWith('q-')){
+    // still on this phone — just edit the queued handoff
+    const op=outbox.find(o=>'q-'+o.qid===id);
+    if(op){ Object.assign(op.params,{runner,miles,dur}); if(op.params.start) op.params.end=new Date(new Date(op.params.start).getTime()+dur*60000).toISOString(); saveOutbox(); }
+    fixOpenId=null; rebuildActual(); renderLog(); toast('Fixed.'); return;
+  }
+  fixOpenId=null;
+  queueAndSend('updateLeg', { id, runner, miles, dur: Math.round(dur*1000)/1000 });
+  toast('Fix saved.');
+}
+async function removeLeg(id){
+  if(!confirm('Remove this leg for everyone?')) return;
+  if(id.startsWith('q-')){
+    outbox=outbox.filter(o=>'q-'+o.qid!==id); saveOutbox(); rebuildActual(); renderLog(); return;
+  }
+  if(await postNow({action:'delete', id})) renderLog();
+}
+async function clearAll(){
+  if(!confirm('Clear ALL logged legs and the start time for everyone? This can\'t be undone.')) return;
+  if(!confirm('Really sure? This wipes the whole race log.')) return;
+  outbox=outbox.filter(o=>o.action!=='add'&&o.action!=='startRace'&&o.action!=='updateLeg'); saveOutbox();
+  RACE_CFG.actualStart=null;
+  if(await postNow({action:'clear'})){ updateStartHour(); renderLog(); }
+}
+async function saveStartTime(){
+  const v=document.getElementById('fix-start').value;
+  if(!v){ toast('Pick a start time.'); return; }
+  const d=new Date(v);
+  if(isNaN(d)){ toast('That time didn’t parse.'); return; }
+  if(!confirm('Set the race start to '+fmtPT(d,{weekday:'short',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT?')) return;
+  if(await postNow({action:'startRace', at:d.toISOString(), force:true})){ updateStartHour(); renderLog(); toast('Start time saved.'); }
 }
 
 // ============ LOGISTICS + RACE-MODE LANDING ============
-// Separate Apps Script web app for the Logistics tab + race timing (Settings tab).
-const LOGI_API_URL = 'https://script.google.com/macros/s/AKfycbxw7cVAPDR6WZts0LFDZecY7Fu8tUAwtH-lujRoomRIawhBcSxtoRLygRJMNHf4G6ZtUg/exec';
-const LOGI_CACHE_KEY = 'tsp_logistics_v1';
-const RACECFG_CACHE_KEY = 'tsp_racecfg_v1';
 const RACE_TZ = 'America/Los_Angeles';
 const RACE_MAX_HOURS = 72; // safety: after start + this, treat the race as over even if the log isn't finished
 
-let RACE_CFG = { raceStart:null, trackerOpens:null };
+let RACE_CFG = { raceStart:null, trackerOpens:null, actualStart:null };
 let logiItems = [];
 let logiLoaded = false;
 let logiFilterType = 'all';
@@ -1687,7 +2055,7 @@ const LOGI_TYPES = [
 ];
 function logiType(k){ return LOGI_TYPES.find(t=>t.key===k) || LOGI_TYPES[LOGI_TYPES.length-1]; }
 
-function logiConfigured(){ return LOGI_API_URL && LOGI_API_URL.indexOf('PASTE_')===-1; }
+function logiConfigured(){ return true; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtPT(d, opts){ return d.toLocaleString('en-US', Object.assign({timeZone:RACE_TZ}, opts)); }
 
@@ -1697,56 +2065,16 @@ function applyRaceCfg(cfg){
   const to=cfg.TrackerOpens?new Date(cfg.TrackerOpens):null;
   RACE_CFG.raceStart = rs && !isNaN(rs) ? rs : null;
   RACE_CFG.trackerOpens = to && !isNaN(to) ? to : (RACE_CFG.raceStart ? new Date(RACE_CFG.raceStart.getTime()-8*3600e3) : null);
-  updateHeaderMeta();
+  const as=cfg.ActualStart?new Date(cfg.ActualStart):null;
+  RACE_CFG.actualStart = as && !isNaN(as) ? as : null;
+  updateStartHour();
 }
 
-function loadLogiCache(){
-  try{ const c=localStorage.getItem(RACECFG_CACHE_KEY); if(c) applyRaceCfg(JSON.parse(c)); }catch(e){}
-  try{ const c=localStorage.getItem(LOGI_CACHE_KEY); if(c){ logiItems=JSON.parse(c)||[]; logiLoaded=true; } }catch(e){}
-  try{ const c=localStorage.getItem(GOING_CACHE_KEY); if(c){ crewGoing=JSON.parse(c)||{}; goingLoaded=true; } }catch(e){}
-}
-
-function ingestLogi(data){
-  if(data.config){
-    applyRaceCfg(data.config);
-    try{ localStorage.setItem(RACECFG_CACHE_KEY, JSON.stringify(data.config)); }catch(e){}
-  }
-  if(data.going){
-    crewGoing=data.going; goingLoaded=true;
-    try{ localStorage.setItem(GOING_CACHE_KEY, JSON.stringify(crewGoing)); }catch(e){}
-  }
-  if(data.items){
-    logiItems=data.items;
-    logiLoaded=true;
-    try{ localStorage.setItem(LOGI_CACHE_KEY, JSON.stringify(logiItems)); }catch(e){}
-  }
-}
-
-async function fetchLogistics(silent){
-  if(!logiConfigured()) return;
-  if(logiPending>0) return;
-  try{
-    const res=await fetch(LOGI_API_URL+'?action=list',{method:'GET'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    ingestLogi(await res.json());
-    if(getActivePageId()==='logistics') renderLogiList();
-  }catch(err){
-    console.error('fetchLogistics error', err);
-    if(!silent) setSyncStatus('err','Logistics sync failed — showing saved copy');
-  }
-}
-
+// Logistics now loads and saves through the shared data layer (ingest / postNow).
 async function postLogi(params){
-  const res=await fetch(LOGI_API_URL,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(params)
-  });
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const data=await res.json();
-  if(data.error) throw new Error(data.error);
-  ingestLogi(data);
-  return data;
+  const d=await postNow(params);
+  if(!d) throw new Error('not saved');
+  return d;
 }
 
 // ---- Race mode: 'pre' (logistics landing) → 'race' (tracker landing) → 'post' (logistics again) ----
@@ -1819,7 +2147,6 @@ function itemIsPast(it){
 let crewGoing = {};   // code -> true/false
 let goingLoaded = false;
 let logiPending = 0;
-const GOING_CACHE_KEY = 'tsp_going_v1';
 const SHARPIE_CHECK='<svg viewBox="0 0 22 20" aria-hidden="true"><path d="M2.5 11.5 C4.5 12.8 6.2 14.6 7.6 17 C10.4 10.6 14.6 5.2 20 1.8"/></svg>';
 function crewLineHTML(){
   if(!logiConfigured()) return '';
@@ -1843,25 +2170,15 @@ async function toggleGoing(btn){
   crewGoing[code]=!before;
   renderCrewLine(); // optimistic
   logiPending++;
-  try{
-    const res=await fetch(LOGI_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'setGoing', code, going:!before})});
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    logiPending--;
-    if(logiPending===0){ ingestLogi(data); renderCrewLine(); }
-  }catch(err){
-    logiPending--;
-    console.error('toggleGoing error', err);
-    crewGoing[code]=before; renderCrewLine();
-    alert(/Unknown action/.test(String(err))
-      ? 'The logistics script needs updating before this can save. (Paste the new script and deploy a new version.)'
-      : 'Couldn\'t save — check your connection and try again.');
-  }
+  const d=await postNow({action:'setGoing', code, going:!before});
+  logiPending--;
+  if(!d){ crewGoing[code]=before; }
+  renderCrewLine();
 }
 function whoList(it){ return String(it.who||'').split(',').map(x=>x.trim()).filter(Boolean); }
 function personFor(code){
-  if(code==='TEAM') return {name:'TEAM', fullName:'Whole team', color:'#125db9'};
-  return ALL_PEOPLE.find(p=>p.name===code) || {name:code, fullName:code, color:'#888888'};
+  if(code==='TEAM') return {name:'TEAM', fullName:'Whole team', color:readableColor('#125db9')};
+  return ALL_PEOPLE.find(p=>p.name===code) || {name:code, fullName:code, color:readableColor('#888888')};
 }
 
 // ---- Countdown ----
@@ -1913,6 +2230,7 @@ function renderLogistics(){
   el.innerHTML=`
     <div id="logi-hero">${countdownHTML()}</div>
     <div id="crew-line-wrap">${crewLineHTML()}</div>
+    <div id="checklist-wrap">${checklistHTML()}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
       <div class="section-head" style="margin-bottom:0">Logistics</div>
       <button class="btn" id="logi-add-btn" onclick="openLogiForm()" ${logiConfigured()?'':'disabled style="opacity:.4"'}>+ ADD</button>
@@ -1922,12 +2240,12 @@ function renderLogistics(){
       <button class="chip${logiFilterType==='all'?' on':''}" onclick="setLogiType('all')">ALL</button>
       ${LOGI_TYPES.map(t=>`<button class="chip${logiFilterType===t.key?' on':''}" onclick="setLogiType('${t.key}')">${t.key.toUpperCase()}</button>`).join('')}
       <select onchange="logiFilterWho=this.value;renderLogiList()" aria-label="Filter by person">
-        <option value="all">Everyone</option>
-        ${ALL_PEOPLE.map(p=>`<option value="${esc(p.name)}"${logiFilterWho===p.name?' selected':''}>${esc(p.fullName)}</option>`).join('')}
+        <option value="all"${logiFilterWho==='all'?' selected':''}>Everyone's items</option>
+        ${ALL_PEOPLE.map(p=>`<option value="${esc(p.name)}"${logiFilterWho===p.name?' selected':''}>${p.name===ME?'Mine + team':esc(p.fullName)+' + team'}</option>`).join('')}
       </select>
     </div>
     <div id="logi-list"></div>
-    <div class="site-foot"><img src="img/logo-long.png" alt="The Speed Project"></div>`;
+    <div class="site-foot"><img class="logo-light" src="img/logo-long.png" alt="The Speed Project"><img class="logo-dark" src="img/logo-long-dark.png" alt="" aria-hidden="true" style="margin:0 auto"></div>`;
   if(logiFormOpen) renderLogiForm();
   renderLogiList();
 }
@@ -2014,10 +2332,10 @@ function logiCard(it, isNext, isPast){
   const isFlight=it.type==='Flight';
   const mapsLink=(!isFlight && it.location) ? 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(it.location) : '';
   const link=/^https?:\/\//i.test(it.link||'') ? it.link : '';
-  return `<div class="logi-card${isNext?' is-next':''}${isPast?' is-past':''}" style="border-left-color:${t.color}">
+  return `<div class="logi-card${isNext?' is-next':''}${isPast?' is-past':''}" style="border-left-color:${readableColor(t.color)}">
     <div class="logi-top">
       <div style="min-width:0">
-        <div class="logi-type" style="color:${t.color}">${esc(t.key.toUpperCase())}${isNext?'<span class="next-up">next up</span>':''}</div>
+        <div class="logi-type" style="color:${readableColor(t.color)}">${esc(t.key.toUpperCase())}${isNext?'<span class="next-up">next up</span>':''}${ME&&who.includes(ME)?'<span class="you-tag">you</span>':''}</div>
         <div class="logi-title">${esc(it.title||'(untitled)')}</div>
       </div>
       <div class="logi-time">${timeHTML}</div>
@@ -2033,6 +2351,7 @@ function logiCard(it, isNext, isPast){
       ${link?`<a class="btn-ghost accent" href="${esc(link)}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">OPEN LINK ↗</a>`:''}
       ${mapsLink?`<a class="btn-ghost accent" href="${mapsLink}" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">MAP ↗</a>`:''}
       <button class="btn-ghost" style="border-color:var(--line-strong)" onclick="openLogiForm('${esc(it.id)}')">EDIT</button>
+      <button class="btn-ghost" style="border-color:var(--line-strong)" onclick="openLogiForm(null,'${esc(it.id)}')">DUPLICATE</button>
       <button class="btn-ghost" onclick="deleteLogi('${esc(it.id)}')">DELETE</button>
     </div>
   </div>`;
@@ -2045,30 +2364,34 @@ function copyConf(btn){
 }
 
 // ---- Add / edit form ----
-function openLogiForm(id){
+let logiCopyFrom=null;
+function openLogiForm(id, copyFrom){
   if(!logiConfigured()) return;
   logiEditingId=id||null;
+  logiCopyFrom=copyFrom||null;
   logiFormOpen=true;
   renderLogiForm();
   const wrap=document.getElementById('logi-form-wrap');
   if(wrap) wrap.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeLogiForm(){
-  logiFormOpen=false; logiEditingId=null;
+  logiFormOpen=false; logiEditingId=null; logiCopyFrom=null;
   const wrap=document.getElementById('logi-form-wrap');
   if(wrap) wrap.innerHTML='';
 }
 function renderLogiForm(){
   const wrap=document.getElementById('logi-form-wrap');
   if(!wrap) return;
-  const it=logiEditingId ? (logiItems.find(x=>x.id===logiEditingId)||{}) : {};
+  let it=logiEditingId ? (logiItems.find(x=>x.id===logiEditingId)||{}) : {};
+  // Duplicate: same details, but pick the person again and clear the confirmation #
+  if(!logiEditingId && logiCopyFrom){ const src=logiItems.find(x=>x.id===logiCopyFrom); if(src) it=Object.assign({}, src, {id:'', who:'', confirmation:''}); }
   const type=it.type||'Flight';
   const t=logiType(type);
   const who=whoList(it);
   const v=k=>esc(it[k]||'');
   const dt=k=>{ const p=parseLocal(it[k]); return p?`${p.y}-${String(p.mo).padStart(2,'0')}-${String(p.d).padStart(2,'0')}T${String(p.h==null?0:p.h).padStart(2,'0')}:${String(p.mi).padStart(2,'0')}`:''; };
   wrap.innerHTML=`<div class="form-card logi-form">
-    <div class="form-label" style="font-size:11px;margin-bottom:14px">${logiEditingId?'EDIT ITEM':'NEW ITEM'}</div>
+    <div class="form-label" style="font-size:11px;margin-bottom:14px">${logiEditingId?'EDIT ITEM':logiCopyFrom?'COPY OF “'+esc(it.title||'')+'” — PICK WHO IT’S FOR':'NEW ITEM'}</div>
     <div class="form-row two">
       <div><div class="form-label">Type</div>
         <select id="lf-type" onchange="logiTypeChanged()">${LOGI_TYPES.map(x=>`<option${x.key===type?' selected':''}>${x.key}</option>`).join('')}</select>
@@ -2149,8 +2472,7 @@ async function saveLogi(){
     closeLogiForm();
     renderLogiList();
   }catch(err){
-    console.error('saveLogi error', err);
-    msg.textContent=' ✗ save failed — try again'; msg.style.color='var(--red)';
+    msg.textContent=' ✗ not saved — try again'; msg.style.color='var(--red)';
     btn.disabled=false;
   }
 }
@@ -2159,32 +2481,83 @@ async function deleteLogi(id){
   if(!it) return;
   if(!confirm('Delete "'+(it.title||'this item')+'" for everyone?')) return;
   try{
-    await postLogi({action:'delete', id});
+    await postLogi({action:'deleteItem', id});
     if(logiEditingId===id) closeLogiForm();
     renderLogiList();
-  }catch(err){
-    console.error('deleteLogi error', err);
-    alert('Delete failed — try again.');
-  }
+  }catch(err){ /* postNow already told them */ }
+}
+// ---- Shared checklist (Checklist tab) ----
+let checkShowDone=false;
+function checklistHTML(){
+  if(!checklistLoaded) return '';
+  const open=checklist.filter(c=>!c.done), done=checklist.filter(c=>c.done);
+  const mineFirst=(a,b)=>((b.who===ME)-(a.who===ME));
+  const row=c=>{
+    const p=c.who?personFor(c.who):null;
+    return `<div class="check-row${c.done?' done':''}${ME&&c.who===ME?' mine':''}">
+      <button class="check-box" onclick="toggleCheck('${esc(c.id)}',${!c.done})" aria-label="${c.done?'Mark not done':'Mark done'}">${c.done?SHARPIE_CHECK:''}</button>
+      <span class="check-text">${esc(c.text)}</span>
+      ${p?`<span class="who-chip" style="border-color:${p.color}80;color:${p.color}">${esc(p.fullName)}</span>`:''}
+      <button class="check-del" onclick="deleteCheck('${esc(c.id)}')" aria-label="Delete">×</button>
+    </div>`;
+  };
+  return `<div class="checklist">
+    <div class="checklist-head">
+      <div class="section-head" style="margin-bottom:0">Checklist</div>
+      <span class="confirm-count">${checklist.length?done.length+' of '+checklist.length+' done':'Packing, gear, to-dos'}</span>
+    </div>
+    <div class="check-list">${open.slice().sort(mineFirst).map(row).join('')||'<div class="check-empty">Nothing open — add gear, packing or to-dos below.</div>'}</div>
+    ${done.length?`<button class="btn-ghost past-toggle" style="margin-top:6px" onclick="checkShowDone=!checkShowDone;renderChecklist()">${checkShowDone?'HIDE':'SHOW'} DONE (${done.length})</button>${checkShowDone?`<div class="check-list">${done.map(row).join('')}</div>`:''}`:''}
+    <div class="check-add">
+      <input type="text" id="check-text" placeholder="Add an item (e.g. cooler + ice)" maxlength="300" onkeydown="if(event.key==='Enter')addCheck()">
+      <select id="check-who" aria-label="Who's on it"><option value="">Anyone</option>${ALL_PEOPLE.map(p=>`<option value="${esc(p.name)}">${esc(p.fullName)}</option>`).join('')}</select>
+      <button class="btn" onclick="addCheck()">ADD</button>
+    </div>
+  </div>`;
+}
+function renderChecklist(){ const el=document.getElementById('checklist-wrap'); if(el) el.innerHTML=checklistHTML(); }
+async function addCheck(){
+  const t=document.getElementById('check-text'), w=document.getElementById('check-who');
+  const text=(t.value||'').trim(); if(!text) return;
+  const who=w.value;
+  t.value='';
+  if(await postNow({action:'checkAdd', text, who})) renderChecklist(); else t.value=text;
+}
+async function toggleCheck(id, done){
+  const c=checklist.find(x=>x.id===id); if(!c) return;
+  const before=c.done; c.done=done; renderChecklist();
+  logiPending++;
+  const d=await postNow({action:'checkToggle', id, done});
+  logiPending--;
+  if(!d) c.done=before;
+  renderChecklist();
+}
+async function deleteCheck(id){
+  const c=checklist.find(x=>x.id===id); if(!c) return;
+  if(!confirm('Delete "'+c.text+'"?')) return;
+  if(await postNow({action:'checkDelete', id})) renderChecklist();
 }
 // ============ END LOGISTICS ============
 
-loadLogiCache();
+// ============ BOOT ============
+// 1) Show whatever this phone saved last time (works with no signal),
+// 2) ask for the team code if we don't have it, 3) sync, then keep syncing.
+applyTheme(true);
+recolorPeople();
+ingest(CACHE, true);
+logiFilterWho = ME || 'all';
+updateMeButton();
 autoLand();
-loadRouteProfile().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-loadRoster().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-loadSettings().then(()=>{ rebuildSchedule(); renderPage(getActivePageId()); });
-fetchLogistics(true).then(()=>autoLand());
-fetchLegs(false);
+refreshSyncStatus();
+if(!API_KEY) showGate();
+else { syncNow(true).then(()=>{ if(!ME) openMePicker(); }); }
 startPolling();
-setInterval(()=>{ tickCountdown(); autoLand(); }, 30000);
-setInterval(()=>{ if(getActivePageId()==='logistics' && !logiFormOpen) fetchLogistics(true); }, 60000);
-
-// Re-sync when the phone screen wakes up / tab regains focus (e.g. app opened from home screen)
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='visible'){ fetchLegs(true); fetchLogistics(true); autoLand(); }
-});
-window.addEventListener('focus', ()=>{ fetchLegs(true); autoLand(); });
+setInterval(()=>{ tickCountdown(); autoLand(); applyTheme(); }, 30000);
+setInterval(tickLegTimer, 1000);
+window.addEventListener('online', ()=>{ netState='ok'; syncNow(false); });
+window.addEventListener('offline', ()=>{ netState='offline'; refreshSyncStatus(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ syncNow(false); autoLand(); } });
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>
