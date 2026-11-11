@@ -845,7 +845,7 @@
 let START_HOUR = 4;
 // Route: TSP v2.0 — Santa Monica → Las Vegas
 // KML-derived: 290.9 mi · 23,657 ft gain · 21,499 ft loss
-// Strict rotation: EK → DC → BA → DJ → LM → LC (every 6 legs, no reordering)
+// Strict rotation: EK → DC → BA → ZW → LM → LC (every 6 legs, no reordering)
 let TOTAL_MILES = 290.9;
 // Elevation total is derived from ROUTE_PROFILE once it loads (falls back
 // to this fixed figure until then, or if the route data is unavailable).
@@ -857,7 +857,7 @@ function getTotalGainFt(){
 
 // Hardcoded fallback roster — used until the Sheet's Runners tab loads (or if
 // it's unreachable). Once loaded, the Sheet's data overwrites these in place.
-// NOTE: the 6 codes below (EK, DC, BA, DJ, LM, LC) are wired into the fixed
+// NOTE: the 6 codes below (EK, DC, BA, ZW, LM, LC) are wired into the fixed
 // leg rotation in LEG_SPECS further down. Who/what is attached to a code
 // (fullName, init, color, pace) is fully editable from the Sheet — the codes
 // themselves aren't, since the whole rotation plan is built around them.
@@ -865,7 +865,7 @@ const DEFAULT_RUNNERS = [
   {name:'EK', fullName:'Eric',   init:'EK', base10k:400, color:'#125db9'},
   {name:'DC', fullName:'Dayne',  init:'DC', base10k:480, color:'#000000'},
   {name:'BA', fullName:'Ben',    init:'BA', base10k:450, color:'#4a8fe0'},
-  {name:'DJ', fullName:'DJ',     init:'DJ', base10k:450, color:'#1f7a87'},
+  {name:'ZW', fullName:'Zach',   init:'ZW', base10k:450, color:'#1f7a87'},
   {name:'LM', fullName:'Levi',   init:'LM', base10k:480, color:'#3f3d9b'},
   {name:'LC', fullName:'Luke',   init:'LC', base10k:500, color:'#c8312b'},
 ];
@@ -917,84 +917,84 @@ RUNNERS.concat(SUPPORT).forEach(r=>{ RUNNER_COLORS[r.name]=r.color; });
 let ALL_PEOPLE = [...RUNNERS, ...SUPPORT];
 
 // KML-derived leg specs: [startMile, legMiles, gainFt, runnerName]
-// Pure EK→DC→BA→DJ→LM→LC rotation. No back-to-backs. DC/LM always 3 legs apart.
+// Pure EK→DC→BA→ZW→LM→LC rotation. No back-to-backs. DC/LM always 3 legs apart.
 const LEG_SPECS = [
   [0.0,5.0,279,'EK'],
   [5.0,5.0,317,'DC'],
   [10.0,4.0,320,'BA'],
-  [14.0,5.0,311,'DJ'],
+  [14.0,5.0,311,'ZW'],
   [19.0,3.0,371,'LM'],
   [22.0,2.0,377,'LC'],
   [24.0,2.0,524,'EK'],
   [26.0,2.0,547,'DC'],
   [28.0,2.0,704,'BA'],
-  [30.0,2.0,727,'DJ'],
+  [30.0,2.0,727,'ZW'],
   [32.0,2.0,731,'LM'],
   [34.0,2.0,678,'LC'],
   [36.0,2.0,422,'EK'],
   [38.0,4.0,565,'DC'],
   [42.0,2.0,556,'BA'],
-  [44.0,2.0,436,'DJ'],
+  [44.0,2.0,436,'ZW'],
   [46.0,2.0,697,'LM'],
   [48.0,2.0,725,'LC'],
   [50.0,4.0,488,'EK'],
   [54.0,3.0,594,'DC'],
   [57.0,4.0,307,'BA'],
-  [61.0,3.0,527,'DJ'],
+  [61.0,3.0,527,'ZW'],
   [64.0,5.0,235,'LM'],
   [69.0,5.0,93,'LC'],
   [74.0,5.0,116,'EK'],
   [79.0,5.0,91,'DC'],
   [84.0,5.0,74,'BA'],
-  [89.0,5.0,22,'DJ'],
+  [89.0,5.0,22,'ZW'],
   [94.0,5.0,19,'LM'],
   [99.0,5.0,32,'LC'],
   [104.0,4.0,418,'EK'],
   [108.0,2.0,575,'DC'],
   [110.0,2.0,372,'BA'],
-  [112.0,5.0,221,'DJ'],
+  [112.0,5.0,221,'ZW'],
   [117.0,4.0,459,'LM'],
   [121.0,4.0,358,'LC'],
   [125.0,5.0,36,'EK'],
   [130.0,4.0,339,'DC'],
   [134.0,3.0,370,'BA'],
-  [137.0,5.0,114,'DJ'],
+  [137.0,5.0,114,'ZW'],
   [142.0,5.0,255,'LM'],
   [147.0,5.0,32,'LC'],
   [152.0,5.0,60,'EK'],
   [157.0,5.0,89,'DC'],
   [162.0,5.0,130,'BA'],
-  [167.0,5.0,133,'DJ'],
+  [167.0,5.0,133,'ZW'],
   [172.0,5.0,235,'LM'],
   [177.0,5.0,133,'LC'],
   [182.0,5.0,116,'EK'],
   [187.0,2.0,415,'DC'],
   [189.0,5.0,152,'BA'],
-  [194.0,5.0,30,'DJ'],
+  [194.0,5.0,30,'ZW'],
   [199.0,5.0,200,'LM'],
   [204.0,4.0,479,'LC'],
   [208.0,3.0,519,'EK'],
   [211.0,2.0,402,'DC'],
   [213.0,2.0,520,'BA'],
-  [215.0,2.0,398,'DJ'],
+  [215.0,2.0,398,'ZW'],
   [217.0,2.0,490,'LM'],
   [219.0,2.0,416,'LC'],
   [221.0,5.0,93,'EK'],
   [226.0,5.0,316,'DC'],
   [231.0,2.0,513,'BA'],
-  [233.0,2.0,547,'DJ'],
+  [233.0,2.0,547,'ZW'],
   [235.0,2.0,637,'LM'],
   [237.0,2.0,448,'LC'],
   [239.0,5.0,112,'EK'],
   [244.0,5.0,1,'DC'],
   [249.0,5.0,91,'BA'],
-  [254.0,5.0,54,'DJ'],
+  [254.0,5.0,54,'ZW'],
   [259.0,5.0,275,'LM'],
   [264.0,5.0,300,'LC'],
   [269.0,4.0,558,'EK'],
   [273.0,5.0,194,'DC'],
   [278.0,5.0,6,'BA'],
-  [283.0,5.0,32,'DJ'],
+  [283.0,5.0,32,'ZW'],
   [288.0,2.9,9,'LM'],
 ];
 
@@ -1129,7 +1129,7 @@ function runnerTotalProjGain(name){
 // Everything (legs, logistics, crew, checklist) goes through one Apps Script.
 const API_URL = 'https://script.google.com/macros/s/AKfycbxw7cVAPDR6WZts0LFDZecY7Fu8tUAwtH-lujRoomRIawhBcSxtoRLygRJMNHf4G6ZtUg/exec';
 const KEY_STORE   = 'tsp_key_v1';     // team code, remembered on this phone
-const CACHE_STORE = 'tsp_cache_v2';   // last good copy of everything, for no-signal use
+const CACHE_STORE = 'tsp_cache_v3';   // last good copy of everything, for no-signal use
 const OUTBOX_STORE= 'tsp_outbox_v1';  // legs logged with no signal, waiting to send
 const ME_STORE    = 'tsp_me_v1';
 const SYNC_INTERVAL_MS = 15000;
@@ -1430,7 +1430,7 @@ function getEffectiveLeg(legIndex, startMile){
 }
 
 // ---------- Roster (from the Runners tab) ----------
-// Rotation codes (EK, DC, BA, DJ, LM, LC) are fixed; name/initials/color/pace come from the sheet.
+// Rotation codes (EK, DC, BA, ZW, LM, LC) are fixed; name/initials/color/pace come from the sheet.
 function applyRoster(rows){
   if(!rows || !rows.length) return;
   const byCode={};
