@@ -695,6 +695,16 @@
   .you-tag { font-family: var(--marker); font-size: 13px; color: var(--ink); background: var(--blue-tint); padding: 0 6px; margin-left: 6px; letter-spacing: .02em; }
   .route-wrap { margin-top: 6px; }
 
+
+  /* ---------- your next leg ---------- */
+  .my-card { border: 3px solid var(--blue); border-left-width: 8px; background: var(--paper); padding: 14px 16px 12px; margin-bottom: 14px; }
+  .my-label { font-family: var(--marker); font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+  .my-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .my-count { font-family: var(--display); font-weight: 900; font-size: 40px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .my-time { font-family: var(--display); font-weight: 900; font-size: 34px; line-height: 1; color: var(--ink); }
+  .my-sub { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); margin-top: 4px; letter-spacing: .06em; }
+  .my-meta { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); letter-spacing: .06em; margin-top: 12px; line-height: 1.6; }
+  .my-after { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
   /* ---------- splits ---------- */
   .splits-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }
   .splits-key { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
@@ -1614,6 +1624,7 @@ function currentLegMinutes(){
   const s=currentLegStart(); return s ? (Date.now()-s.getTime())/60000 : null;
 }
 function tickLegTimer(){
+  tickMyCard();
   const el=document.getElementById('leg-timer');
   if(!el) return;
   const m=currentLegMinutes();
@@ -1666,8 +1677,7 @@ function renderDash(){
   const cum=cumulativeVsPlan();
 
   let html='';
-  if(ME && nextEff && nextEff.runner.name===ME) html+=`<div class="me-banner now">You're running now — leg ${done+1}, ${Math.round(nextEff.miles*10)/10} mi</div>`;
-  else if(ME && onDeckEff && onDeckEff.runner.name===ME) html+=`<div class="me-banner">You're up next — leg ${done+2}, ${Math.round(onDeckEff.miles*10)/10} mi${nextEff&&nextEff.dur&&started?` · in about ${fmtDur(Math.max(0,nextEff.dur-(currentLegMinutes()||0)))}`:''}</div>`;
+  html+=myLegCardHTML();
 
   if(nextEff){
     const nColor=RUNNER_COLORS[nextEff.runner.name]||'var(--blue)';
@@ -1806,6 +1816,84 @@ function cumulativeVsPlan(){
   let c=0;
   actualLegs.forEach((l,i)=>{ const p=SCHEDULE[i]; if(p) c+= l.dur*60 - p.pace*parseFloat(l.miles); });
   return c;
+}
+
+
+// ============ "YOUR NEXT LEG" (for whoever picked their name) ============
+// Walks the live projection forward from the current leg. If the runner out
+// there now is slower than projected, everyone's next start slides later.
+function myUpcomingLegs(){
+  if(!ME || !RUNNERS.some(r=>r.name===ME)) return null;
+  const done=actualLegs.length;
+  const rem=projectRemaining(done, getActualMiles());
+  const started=raceStarted();
+  const anchor = started ? currentLegStart() : (RACE_CFG.raceStart || null);
+  if(!anchor) return null;
+  let t=anchor.getTime();
+  const out=[];
+  rem.legs.forEach((eff,j)=>{
+    let d=eff.dur||0;
+    if(j===0 && started) d=Math.max(d, currentLegMinutes()||0);   // running long → push everything back
+    if(eff.runner.name===ME) out.push({ eff, legNumber:done+j+1, start:new Date(t), end:new Date(t+d*60000), runningNow: j===0 && started });
+    t+=d*60000;
+  });
+  return out;
+}
+function fmtCountdown(ms){
+  if(ms<=0) return '0:00:00';
+  const t=Math.floor(ms/1000), d=Math.floor(t/86400);
+  if(d>=1) return d+'d '+Math.floor(t%86400/3600)+'h '+Math.floor(t%3600/60)+'m';
+  return Math.floor(t/3600)+':'+String(Math.floor(t%3600/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function whenPT(d){
+  const sameDay = fmtPT(d,{year:'numeric',month:'numeric',day:'numeric'})===fmtPT(new Date(),{year:'numeric',month:'numeric',day:'numeric'});
+  return { time: clockStrPT(d), day: sameDay ? 'today' : fmtPT(d,{weekday:'short'}) };
+}
+function myLegCardHTML(){
+  const legs=myUpcomingLegs();
+  if(legs===null) return '';
+  const me=RUNNERS.find(r=>r.name===ME);
+  const col=me?me.color:'var(--blue)';
+  if(!legs.length) return `<div class="my-card" style="border-color:${col}"><div class="my-label">${esc(meName())}, you're done running!</div><div class="my-after">All your legs are logged — enjoy the ride to Vegas.</div></div>`;
+  const now=legs[0].runningNow ? legs[0] : null;
+  const next=now ? legs[1] : legs[0];
+  const left=legs.length - (now?1:0);
+  let html=`<div class="my-card" style="border-color:${col}">`;
+  if(now){
+    html+=`<div class="my-label" style="color:${col}">You're running leg ${now.legNumber}</div>`;
+    if(next){
+      const w=whenPT(next.start);
+      const rest=(next.start-now.end)/60000;
+      html+=`<div class="my-row">
+        <div><div class="now-stat-label">After this, next leg</div><div class="my-time">${w.time}</div><div class="my-sub">${w.day} · leg ${next.legNumber}</div></div>
+        <div><div class="now-stat-label">Rest after you finish</div><div class="my-count">${fmtHMS(rest)}</div><div class="my-sub">projected</div></div>
+      </div>`;
+    } else html+=`<div class="my-after">This is your last leg — bring it home!</div>`;
+  } else {
+    const w=whenPT(next.start);
+    const e=next.eff;
+    const upNext = next.legNumber===actualLegs.length+2 && raceStarted();
+    html+=`<div class="my-label" style="color:${col}">${upNext?"You're up next!":'Your next leg'}</div>
+      <div class="my-row">
+        <div><div class="now-stat-label">${raceStarted()?'Rest time left':'Until your first leg'}</div><div class="my-count" id="my-count" data-t="${next.start.getTime()}">${fmtCountdown(next.start-Date.now())}</div></div>
+        <div><div class="now-stat-label">Projected start</div><div class="my-time">${w.time}</div><div class="my-sub">${w.day} PT</div></div>
+      </div>
+      <div class="my-meta">LEG ${next.legNumber} · ${Math.round(e.miles*10)/10} MI · MILE ${Math.round(e.startMile*10)/10}–${Math.round((e.startMile+e.miles)*10)/10} · ▲${e.gainFt}FT · ${fmtPace(e.pace)}/MI · ${fmtHMS(e.dur)} · ${e.condition.toUpperCase()}</div>`;
+    const after=legs[1];
+    if(after){ const w2=whenPT(after.start); html+=`<div class="my-after">Then leg ${after.legNumber} around ${w2.time}${w2.day!=='today'?' '+w2.day:''} · ${left} leg${left>1?'s':''} left for you</div>`; }
+    else html+=`<div class="my-after">Your last leg</div>`;
+  }
+  return html+`</div>`;
+}
+// Countdown ticks every second; the start time itself is re-projected whenever data changes.
+function tickMyCard(){
+  const el=document.getElementById('my-count');
+  if(!el) return;
+  // re-project live so a slow current leg keeps pushing your start back
+  const legs=myUpcomingLegs();
+  const next=legs && (legs[0] && legs[0].runningNow ? legs[1] : legs[0]);
+  if(!next){ return; }
+  el.textContent=fmtCountdown(next.start-Date.now());
 }
 
 // ============ SPLITS (plan vs actual, every leg) ============
