@@ -696,6 +696,16 @@
   .route-wrap { margin-top: 6px; }
 
 
+
+  /* ---------- runner out ---------- */
+  .runner-cell.is-out { opacity: .55; }
+  .out-tag { margin-left: auto; font-family: var(--marker); font-size: 12px; color: var(--red); white-space: nowrap; }
+  .drop-preview { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
+  .drop-tbl { width: 100%; table-layout: auto; font-family: var(--mono); font-size: 11px; }
+  .drop-tbl td { padding: 5px 4px; border-bottom: 1px solid var(--line); color: var(--ink-dim); }
+  .drop-tbl b { color: var(--ink); }
+  .drop-list { margin-top: 12px; border-top: 1px solid var(--line); }
+  .drop-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--ink-dim); }
   /* ---------- your next leg ---------- */
   .my-card { border: 3px solid var(--blue); border-left-width: 8px; background: var(--paper); padding: 14px 16px 12px; margin-bottom: 14px; }
   .my-label { font-family: var(--marker); font-size: 20px; color: var(--ink); margin-bottom: 8px; }
@@ -1127,12 +1137,51 @@ function rebuildSchedule(){
   totalProjMins=SCHEDULE.reduce((a,l)=>a+l.dur,0);
 }
 
-// Per-runner total projected miles and gain
+// ---- Runner drop-outs: re-split the remaining legs among everyone still in ----
+// DROPPED = {code: firstLegTheyAreOut}. From that leg on, the rotation keeps its
+// order (EK→DC→BA→ZW→LM→LC) but skips anyone who's out, picking up with whoever
+// would have run that leg (or the next person still in).
+let DROPPED = {};
+let dropPreview = null;           // {code, from} while previewing a drop
+const ROTATION = DEFAULT_RUNNERS.map(r=>r.name);
+let _assign = { key:null, arr:null };
+function activeDrops(){
+  const d=Object.keys(DROPPED).map(c=>({code:c, from:DROPPED[c]}));
+  if(dropPreview && !DROPPED[dropPreview.code]) d.push(dropPreview);
+  return d.sort((a,b)=>a.from-b.from);
+}
+function legAssignments(){
+  const drops=activeDrops();
+  const key=JSON.stringify(drops)+'|'+SCHEDULE.length;
+  if(_assign.key===key) return _assign.arr;
+  const arr=SCHEDULE.map(l=>l.runner.name);
+  const out=new Set();
+  drops.forEach(dp=>{
+    out.add(dp.code);
+    const active=ROTATION.filter(c=>!out.has(c));
+    const i0=dp.from-1;
+    if(!active.length || i0<0 || i0>=arr.length) return;
+    let pos=ROTATION.indexOf(arr[i0]), k=0;
+    while(k<ROTATION.length && out.has(ROTATION[(pos+k)%ROTATION.length])) k++;
+    let ai=active.indexOf(ROTATION[(pos+k)%ROTATION.length]);
+    for(let i=i0;i<arr.length;i++){ arr[i]=active[ai%active.length]; ai++; }
+  });
+  _assign={ key, arr };
+  return arr;
+}
+function isOutFor(code, legNumber){
+  const d=activeDrops().find(x=>x.code===code);
+  return !!d && legNumber>=d.from;
+}
+
+// Per-runner projected totals: what they've run + what's still projected for them
 function runnerTotalProjMiles(name){
-  return SCHEDULE.filter(l=>l.runner.name===name).reduce((a,l)=>a+l.miles,0);
+  const done=actualLegs.filter(l=>l.runner===name).reduce((a,l)=>a+(+l.miles||0),0);
+  return done + projectRemaining(actualLegs.length, getActualMiles()).legs.filter(e=>e.runner.name===name).reduce((a,e)=>a+e.miles,0);
 }
 function runnerTotalProjGain(name){
-  return SCHEDULE.filter(l=>l.runner.name===name).reduce((a,l)=>a+l.gainFt,0);
+  const done=actualLegs.filter(l=>l.runner===name).reduce((a,l)=>a+(l.gainFt||0),0);
+  return done + projectRemaining(actualLegs.length, getActualMiles()).legs.filter(e=>e.runner.name===name).reduce((a,e)=>a+(e.gainFt||0),0);
 }
 
 // ============ DATA LAYER — one API, team code, works with no signal ============
@@ -1229,9 +1278,11 @@ function ingest(d, fromCache){
   if(d.legs) serverLegs=d.legs.map(normLeg);
   if(d.items){ logiItems=d.items; logiLoaded=true; }
   if(d.going){ crewGoing=d.going; goingLoaded=true; }
+  if(d.dropped){ DROPPED=Object.assign({}, d.dropped); sched=true; }
+  else if(d.runners && d.runners.length){ const x={}; d.runners.forEach(r=>{ if(r.outFromLeg) x[r.code]=r.outFromLeg; }); DROPPED=x; }
   if(d.checklist){ checklist=d.checklist; checklistLoaded=true; }
   if(!fromCache){
-    ['runners','route','settings','config','overrides','legs','items','going','checklist'].forEach(k=>{ if(d[k]!==undefined) CACHE[k]=d[k]; });
+    ['runners','route','settings','config','overrides','legs','items','going','checklist','dropped'].forEach(k=>{ if(d[k]!==undefined) CACHE[k]=d[k]; });
     CACHE.savedAt=new Date().toISOString();
     lsSet(CACHE_STORE, JSON.stringify(CACHE));
     lastSyncAt=new Date();
@@ -1431,7 +1482,10 @@ function getEffectiveLeg(legIndex, startMile){
   const base=SCHEDULE[legIndex];
   const legNumber=legIndex+1;
   const ov=overrides[legNumber];
-  const runner=(ov&&ov.runner)?(ALL_PEOPLE.find(p=>p.name===ov.runner)||base.runner):base.runner;
+  const assigned=legAssignments()[legIndex];
+  const baseRunner=ALL_PEOPLE.find(p=>p.name===assigned)||base.runner;
+  // a manual adjustment wins — unless it names someone who has since dropped out
+  const runner=(ov&&ov.runner&&!isOutFor(ov.runner,legNumber))?(ALL_PEOPLE.find(p=>p.name===ov.runner)||baseRunner):baseRunner;
   const miles=(ov&&ov.miles!=null&&!isNaN(ov.miles))?ov.miles:base.miles;
   const gainFt=effectiveGain(startMile, miles, base.gainFt, base.miles);
   const pace=projPaceForLeg(runner.name, miles, gainFt);
@@ -1453,7 +1507,8 @@ function applyRoster(rows){
       fullName:s.fullName||def.fullName,
       init:s.init||def.init,
       baseColor:s.color||def.color,
-      base10k:(s.pace10kSecPerMi!=null)?s.pace10kSecPerMi:def.base10k
+      base10k:(s.pace10kSecPerMi!=null)?s.pace10kSecPerMi:def.base10k,
+      outFromLeg:s.outFromLeg||null
     };
   });
   const rotationCodes=DEFAULT_RUNNERS.map(r=>r.name);
@@ -1699,11 +1754,12 @@ function renderDash(){
       <div class="now-actions">
         <button class="btn-ghost" onclick="toggleAdjust('next')">✎ ADJUST RUNNER / DISTANCE</button>
         <button class="btn-ghost" onclick="goPage('log')">FIX A LEG</button>
+        <button class="btn-ghost" onclick="openDropOut()">RUNNER OUT?</button>
       </div>
       <div id="adjust-next" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
-            <select id="adjust-next-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+            <select id="adjust-next-runner">${RUNNERS.filter(r=>!DROPPED[r.name]).map(r=>`<option value="${r.name}"${r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
           </div>
           <div><div class="form-label">Miles</div>
             <input type="number" id="adjust-next-miles" value="${nextEff.miles}" min="0.1" max="30" step="0.1" inputmode="decimal">
@@ -1734,7 +1790,7 @@ function renderDash(){
       <div id="adjust-deck" style="display:none;width:100%;padding-top:10px;border-top:1px solid var(--line)">
         <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
           <div><div class="form-label">Runner</div>
-            <select id="adjust-deck-runner">${RUNNERS.map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+            <select id="adjust-deck-runner">${RUNNERS.filter(r=>!DROPPED[r.name]).map(r=>`<option value="${r.name}"${r.name===onDeckEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
           </div>
           <div><div class="form-label">Miles</div>
             <input type="number" id="adjust-deck-miles" value="${onDeckEff.miles}" min="0.1" max="30" step="0.1" inputmode="decimal">
@@ -1778,8 +1834,9 @@ function renderDash(){
       const ap=getRunnerActualPace(r.name);
       const isNext=nextEff&&nextEff.runner.name===r.name;
       const rColor=RUNNER_COLORS[r.name]||'var(--blue)';
-      return `<div class="runner-cell${isNext?' is-next':''}${r.name===ME?' is-me':''}" style="${isNext?'border-color:'+rColor:''}">
-        <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${esc(r.init)}</div><div class="runner-name-cell" style="color:${rColor}">${esc(r.fullName)}</div></div>
+      const outLeg=DROPPED[r.name];
+      return `<div class="runner-cell${isNext?' is-next':''}${r.name===ME?' is-me':''}${outLeg?' is-out':''}" style="${isNext?'border-color:'+rColor:''}">
+        <div class="runner-cell-top"><div class="av" style="border-color:${rColor};color:${rColor}">${esc(r.init)}</div><div class="runner-name-cell" style="color:${rColor}">${esc(r.fullName)}</div>${outLeg?`<span class="out-tag">out from leg ${outLeg}</span>`:''}</div>
         <div class="runner-miles-cell" style="color:${rColor}">${Math.round(actMi*10)/10} / ${Math.round(projTotalMi*10)/10} mi</div>
         <div class="runner-stats-cell">▲ ${actGainR.toLocaleString()} / ${projTotalGain.toLocaleString()} ft &nbsp;&bull;&nbsp; ${rl.length} legs${ap?' &bull; '+fmtPace(ap)+'/mi':''}</div>
       </div>`;
@@ -1802,7 +1859,15 @@ function raceElapsedNow(){
   return getActualElapsed()+(currentLegMinutes()||0);
 }
 // Projected minutes for the legs still to run (uses live adjustments + actual paces so far).
+let _projMemo={ key:null, val:null };
 function projectRemaining(done, actMiles){
+  const key=[done, actMiles, actualLegs.map(l=>l.runner+l.dur+l.miles).join(','), JSON.stringify(overrides), JSON.stringify(activeDrops()), ROUTE_PROFILE.length, RUNNERS.map(r=>r.base10k).join(','), START_HOUR].join('|');
+  if(_projMemo.key===key) return _projMemo.val;
+  const val=projectRemainingRaw(done, actMiles);
+  _projMemo={ key, val };
+  return val;
+}
+function projectRemainingRaw(done, actMiles){
   let mile=actMiles, total=0; const legs=[];
   for(let k=done;k<TOTAL_LEGS;k++){
     const eff=getEffectiveLeg(k, mile);
@@ -1854,6 +1919,7 @@ function myLegCardHTML(){
   if(legs===null) return '';
   const me=RUNNERS.find(r=>r.name===ME);
   const col=me?me.color:'var(--blue)';
+  if(!legs.length && DROPPED[ME]) return `<div class="my-card" style="border-color:${col}"><div class="my-label">You're out from leg ${DROPPED[ME]}</div><div class="my-after">Your legs have been split among the rest of the team. Rest up — and crew on.</div></div>`;
   if(!legs.length) return `<div class="my-card" style="border-color:${col}"><div class="my-label">${esc(meName())}, you're done running!</div><div class="my-after">All your legs are logged — enjoy the ride to Vegas.</div></div>`;
   const now=legs[0].runningNow ? legs[0] : null;
   const next=now ? legs[1] : legs[0];
@@ -2021,7 +2087,7 @@ function renderLog(){
     <div class="form-label" style="font-size:11px;margin-bottom:12px">Add a missed leg${nextEff?' — leg '+(done+1):''}</div>
     <div class="form-row">
       <div><div class="form-label">Runner</div>
-        <select id="log-runner">${RUNNERS.map(r=>`<option value="${r.name}"${nextEff&&r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
+        <select id="log-runner">${RUNNERS.filter(r=>!DROPPED[r.name]).map(r=>`<option value="${r.name}"${nextEff&&r.name===nextEff.runner.name?' selected':''}>${esc(r.fullName)}</option>`).join('')}</select>
       </div>
       <div><div class="form-label">Miles</div>
         <input type="number" id="log-miles" value="${nextEff?nextEff.miles:5}" min="0.1" max="30" step="0.1" inputmode="decimal">
@@ -2035,6 +2101,8 @@ function renderLog(){
       <span id="log-msg"></span>
     </div>
   </div>`;
+
+  html+=dropOutHTML();
 
   if(done){
     html+=`<div class="section-head">Logged Legs</div><div class="fix-list">`;
@@ -2070,6 +2138,85 @@ function renderLog(){
     html+=`<div class="empty"><div class="empty-big">No legs yet</div>Handoffs logged from the Race tab show up here.</div>`;
   }
   el.innerHTML=html;
+}
+// ---- Runner out: pick who + from which leg, preview the re-split, confirm ----
+function openDropOut(){ goPage('log'); setTimeout(()=>{ const e=document.getElementById('drop-out'); if(e) e.scrollIntoView({block:'start'}); },60); }
+function dropImpact(code, from){
+  // compare the plan for legs from..end with and without this drop
+  const done=actualLegs.length, mi=getActualMiles();
+  const tally=()=>{ const r=projectRemainingRaw(done, mi), by={};
+    r.legs.forEach(e=>{ const b=by[e.runner.name]||(by[e.runner.name]={legs:0,miles:0}); b.legs++; b.miles+=e.miles; });
+    return { by, total:r.total }; };
+  dropPreview=null; _assign.key=null; const before=tally();
+  dropPreview={ code, from }; _assign.key=null; const after=tally();
+  dropPreview=null; _assign.key=null;
+  return { before, after };
+}
+function dropOutHTML(){
+  const done=actualLegs.length;
+  const inRunners=RUNNERS.filter(r=>!DROPPED[r.name]);
+  const outRunners=RUNNERS.filter(r=>DROPPED[r.name]);
+  const defFrom=done+1;
+  let h=`<div class="form-card" id="drop-out">
+    <div class="form-label" style="font-size:11px;margin-bottom:6px">Runner out</div>
+    <div class="fix-note" style="margin:0 0 12px">If someone can't continue, their remaining legs get split among everyone else. The rotation keeps its order and skips them, so nobody runs back-to-back.</div>`;
+  if(inRunners.length>1){
+    h+=`<div class="form-row two" style="grid-template-columns:1fr 1fr">
+      <div><div class="form-label">Who's out</div>
+        <select id="drop-who" onchange="renderDropPreview()"><option value="">Pick a runner…</option>${inRunners.map(r=>`<option value="${r.name}">${esc(r.fullName)}</option>`).join('')}</select></div>
+      <div><div class="form-label">Out starting with leg</div>
+        <input type="number" id="drop-from" min="1" max="${TOTAL_LEGS}" value="${Math.min(defFrom,TOTAL_LEGS)}" inputmode="numeric" onchange="renderDropPreview()" oninput="renderDropPreview()"></div>
+    </div>
+    <div id="drop-preview"></div>`;
+  }
+  if(outRunners.length){
+    h+=`<div class="drop-list">${outRunners.map(r=>`<div class="drop-row"><span><b style="color:${r.color}">${esc(r.fullName)}</b> — out from leg ${DROPPED[r.name]}</span><button class="btn-ghost" onclick="bringBack('${r.name}')">BRING BACK</button></div>`).join('')}</div>`;
+  }
+  return h+`</div>`;
+}
+function renderDropPreview(){
+  const el=document.getElementById('drop-preview'); if(!el) return;
+  const code=document.getElementById('drop-who').value;
+  const from=parseInt(document.getElementById('drop-from').value,10);
+  const done=actualLegs.length;
+  if(!code){ el.innerHTML=''; return; }
+  if(!from || from<1 || from>TOTAL_LEGS){ el.innerHTML='<div class="fix-note" style="color:var(--red)">Pick a leg between 1 and '+TOTAL_LEGS+'.</div>'; return; }
+  if(from<=done){ el.innerHTML='<div class="fix-note" style="color:var(--red)">Leg '+from+' is already logged — pick leg '+(done+1)+' or later.</div>'; return; }
+  const imp=dropImpact(code, from);
+  const who=RUNNERS.find(r=>r.name===code);
+  const lost=imp.before.by[code]||{legs:0,miles:0};
+  const rows=RUNNERS.filter(r=>r.name!==code && !DROPPED[r.name]).map(r=>{
+    const b=imp.before.by[r.name]||{legs:0,miles:0}, a=imp.after.by[r.name]||{legs:0,miles:0};
+    return `<tr><td style="color:${r.color};font-weight:700">${esc(r.fullName)}</td><td>${b.legs} → <b>${a.legs}</b></td><td>${Math.round(b.miles*10)/10} → <b>${Math.round(a.miles*10)/10}</b> mi</td></tr>`;
+  }).join('');
+  const dt=imp.after.total-imp.before.total;
+  const runningNow = from===done+1 && raceStarted() && getEffectiveLeg(done,getActualMiles()).runner.name===code;
+  el.innerHTML=`<div class="drop-preview">
+    <div class="fix-note" style="margin:0 0 8px">${esc(who.fullName)}'s ${lost.legs} remaining leg${lost.legs===1?'':'s'} (${Math.round(lost.miles*10)/10} mi) get re-split. Still to run, per person:</div>
+    <table class="drop-tbl"><tbody>${rows}</tbody></table>
+    <div class="fix-note" style="margin-top:8px">Projected finish ${dt>=0?'moves later by':'moves earlier by'} <b>${fmtHMS(Math.abs(dt))}</b> (based on each runner's pace).${runningNow?' <b>'+esc(who.fullName)+' is on leg '+from+' right now</b> — the next runner takes over this leg; adjust its miles if they start partway.':''}</div>
+    <button class="btn" style="margin-top:12px" onclick="confirmDrop()">MARK ${esc(who.fullName).toUpperCase()} OUT & REBALANCE</button>
+  </div>`;
+}
+async function confirmDrop(){
+  const code=document.getElementById('drop-who').value;
+  const from=parseInt(document.getElementById('drop-from').value,10);
+  const who=RUNNERS.find(r=>r.name===code);
+  if(!who||!from) return;
+  if(!confirm(`Mark ${who.fullName} out starting with leg ${from}?\n\nTheir remaining legs get re-split for everyone's phones.`)) return;
+  const prev=DROPPED[code];
+  DROPPED[code]=from; _assign.key=null; renderPage(getActivePageId());
+  const d=await postNow({action:'setDropped', code, fromLeg:from});
+  if(!d){ if(prev) DROPPED[code]=prev; else delete DROPPED[code]; _assign.key=null; renderPage(getActivePageId()); return; }
+  toast(`${who.fullName} is out from leg ${from}. Legs rebalanced.`);
+}
+async function bringBack(code){
+  const who=RUNNERS.find(r=>r.name===code);
+  if(!confirm(`Put ${who?who.fullName:code} back in the rotation?`)) return;
+  const prev=DROPPED[code];
+  delete DROPPED[code]; _assign.key=null; renderPage(getActivePageId());
+  const d=await postNow({action:'setDropped', code, fromLeg:null});
+  if(!d){ DROPPED[code]=prev; _assign.key=null; renderPage(getActivePageId()); }
 }
 function submitLeg(){
   const runner=document.getElementById('log-runner').value;
