@@ -697,6 +697,39 @@
 
 
 
+
+  /* ---------- resources ---------- */
+  .res-master { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+  .res-master-btn { text-decoration: none; display: inline-flex; align-items: center; font-size: 20px; }
+  .res-master-empty { display: flex; flex-direction: column; gap: 2px; font-family: var(--mono); font-size: 10px; color: var(--ink-dim); }
+  .res-master-empty .marker { font-size: 18px; color: var(--ink); }
+  .res-head a { text-decoration: none; }
+  .res-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 24px 0 10px; }
+  .contact-list { border-top: 2px solid var(--line); }
+  .contact-row { display: flex; align-items: center; gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--line); }
+  .contact-row.is-me { background: var(--blue-tint); }
+  .contact-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .contact-name b { font-family: var(--display); font-weight: 900; font-size: 17px; color: var(--ink); }
+  .contact-name span { font-family: var(--mono); font-size: 9px; color: var(--ink-dim); letter-spacing: .04em; }
+  .contact-row .btn-ghost { min-height: 34px; padding: 6px 9px; font-size: 9px; text-decoration: none; display: inline-flex; align-items: center; }
+  .contact-row input { width: 140px; min-height: 36px; font-size: 15px; padding: 6px 8px; }
+  .icon-btn { min-width: 34px; justify-content: center; }
+  .res-card { background: var(--paper); border: 2px solid var(--line); border-left: 6px solid var(--gray); padding: 12px 14px; margin-bottom: 10px; }
+  .res-911 { border-left-color: var(--red); background: rgba(200,49,43,0.05); }
+  .res-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .res-name { font-family: var(--display); font-weight: 900; font-size: 22px; line-height: 1.05; color: var(--ink); }
+  .res-sub { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); margin-top: 4px; line-height: 1.6; }
+  .res-call { text-decoration: none; display: inline-flex; align-items: center; background-color: var(--red); white-space: nowrap; font-size: 18px; padding: 10px 16px; }
+  .res-call:hover { background-color: #a62822; }
+  .res-ahead { font-family: var(--marker); font-size: 13px; color: var(--blue); margin-left: 4px; letter-spacing: .01em; }
+  .res-ahead.here { color: var(--green); }
+  .res-ahead.passed { color: var(--ink-faint); }
+  .res-empty { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); padding: 4px 2px 8px; }
+  .logi-actions a.btn-ghost { text-decoration: none; display: inline-flex; align-items: center; }
+  @media (max-width: 600px) {
+    .contact-row input { width: 120px; }
+    .res-name { font-size: 20px; }
+  }
   /* ---------- runner out ---------- */
   .runner-cell.is-out { opacity: .55; }
   .out-tag { margin-left: auto; font-family: var(--marker); font-size: 12px; color: var(--red); white-space: nowrap; }
@@ -832,12 +865,14 @@
   <button data-page="logistics" onclick="goPage('logistics',this,true)">LOGISTICS</button>
   <button data-page="dash" onclick="goPage('dash',this,true)">RACE</button>
   <button data-page="splits" onclick="goPage('splits',this,true)">SPLITS</button>
+  <button data-page="resources" onclick="goPage('resources',this,true)">RESOURCES</button>
 </nav>
 
 <div id="page-logistics" class="page"></div>
 <div id="page-dash" class="page"></div>
 <div id="page-splits" class="page"></div>
 <div id="page-log" class="page"></div>
+<div id="page-resources" class="page"></div>
 
 <!-- Team code -->
 <div id="gate" class="overlay" hidden>
@@ -1281,8 +1316,10 @@ function ingest(d, fromCache){
   if(d.dropped){ DROPPED=Object.assign({}, d.dropped); sched=true; }
   else if(d.runners && d.runners.length){ const x={}; d.runners.forEach(r=>{ if(r.outFromLeg) x[r.code]=r.outFromLeg; }); DROPPED=x; }
   if(d.checklist){ checklist=d.checklist; checklistLoaded=true; }
+  if(d.resources){ resources=d.resources; resourcesLoaded=true; }
+  if(d.phones){ phones=Object.assign({}, d.phones); }
   if(!fromCache){
-    ['runners','route','settings','config','overrides','legs','items','going','checklist','dropped'].forEach(k=>{ if(d[k]!==undefined) CACHE[k]=d[k]; });
+    ['runners','route','settings','config','overrides','legs','items','going','checklist','dropped','resources','phones'].forEach(k=>{ if(d[k]!==undefined) CACHE[k]=d[k]; });
     CACHE.savedAt=new Date().toISOString();
     lsSet(CACHE_STORE, JSON.stringify(CACHE));
     lastSyncAt=new Date();
@@ -1378,6 +1415,7 @@ function rerenderSafely(){
   const id=getActivePageId();
   if(typing) return;                       // don't wipe a form someone is filling in
   if(id==='logistics' && logiFormOpen){ renderCrewLine(); renderChecklist(); return; }
+  if(id==='resources' && (resFormOpen || phoneEditCode)) return;
   renderPage(id);
 }
 function manualSync(){ setSyncStatus('syncing','Syncing…'); syncNow(true); }
@@ -1620,7 +1658,7 @@ function goPage(id,btn,byUser){
   if(!byUser) window.scrollTo(0,0);
 }
 function renderPage(id){
-  ({logistics:renderLogistics,dash:renderDash,splits:renderSplits,log:renderLog})[id]();
+  ({logistics:renderLogistics,dash:renderDash,splits:renderSplits,log:renderLog,resources:renderResources})[id]();
 }
 
 // ---- Route map: the Sharpie line traced from the TSP logo ----
@@ -2777,6 +2815,190 @@ async function deleteCheck(id){
   if(!confirm('Delete "'+c.text+'"?')) return;
   if(await postNow({action:'checkDelete', id})) renderChecklist();
 }
+// ============ RESOURCES (contacts, coordinates, fuel, emergency, master sheet) ============
+let resources = []; let resourcesLoaded = false;
+let phones = {};
+let resFormOpen = false, resEditingId = null, resNewCat = null, phoneEditCode = null;
+const RES_CATS = [
+  { key:'Emergency',   title:'Emergency services', color:'#c8312b', ph:'e.g. Barstow Community Hospital' },
+  { key:'Coordinates', title:'Key coordinates',    color:'#125db9', ph:'e.g. Exchange point — Cajon Pass' },
+  { key:'Fuel',        title:'Fuel stops',         color:'#5f5f5f', ph:'e.g. Pilot Travel Center' },
+  { key:'Other',       title:'Other',              color:'#000000', ph:'e.g. Ice / water refill' },
+];
+function resCat(k){ return RES_CATS.find(c=>c.key===k) || RES_CATS[RES_CATS.length-1]; }
+
+const LATLNG_RE=/^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
+function mapsUrl(loc){
+  const m=LATLNG_RE.exec(loc||'');
+  const q = m ? m[1]+','+m[2] : loc;
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+}
+function telHref(p){ return 'tel:'+String(p||'').replace(/[^\d+]/g,''); }
+function smsHref(nums){
+  const list=nums.map(n=>String(n).replace(/[^\d+]/g,'')).filter(Boolean);
+  if(!list.length) return '';
+  const iOS=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  if(list.length===1) return 'sms:'+list[0];
+  return iOS ? 'sms:/open?addresses='+list.join(',') : 'sms:'+list.join(',');
+}
+// how far ahead of the team a mile marker is (only meaningful once the race is moving)
+function aheadLabel(mile){
+  if(mile==null || isNaN(mile) || !raceStarted()) return '';
+  const d=mile-getActualMiles();
+  if(d<-0.5) return '<span class="res-ahead passed">passed</span>';
+  if(d<=0.5) return '<span class="res-ahead here">here now</span>';
+  return `<span class="res-ahead">${Math.round(d*10)/10} mi ahead</span>`;
+}
+
+function renderResources(){
+  const el=document.getElementById('page-resources');
+  const masterUrl=(CACHE.config&&CACHE.config.MasterCoordsURL)||RACE_CFG.masterUrl||'';
+  let html=`
+  <div class="res-master">
+    ${masterUrl
+      ? `<a class="btn res-master-btn" href="${esc(masterUrl)}" target="_blank" rel="noopener">Master coordinates sheet ↗</a>
+         <button class="btn-ghost" onclick="editMasterLink()">CHANGE LINK</button>`
+      : `<div class="res-master-empty"><span class="marker">Master coordinates sheet</span><span>Not linked yet.</span></div>
+         <button class="btn-ghost accent" onclick="editMasterLink()">+ ADD LINK</button>`}
+  </div>`;
+
+  // Emergency first — fastest to reach when it matters
+  html+=`<div id="res-form-wrap"></div>`;
+  html+=resCategoryHTML(RES_CATS[0]);
+  // ---- contacts ----
+  const people=ALL_PEOPLE;
+  const withPhones=people.filter(p=>phones[p.name]);
+  html+=`<div class="res-head"><div class="section-head" style="margin-bottom:0">Team contacts</div>
+    ${withPhones.length>1?`<a class="btn-ghost accent" href="${smsHref(withPhones.map(p=>phones[p.name]))}">TEXT WHOLE TEAM</a>`:''}</div>
+  <div class="contact-list">${people.map(p=>{
+    const ph=phones[p.name]||'';
+    const editing=phoneEditCode===p.name;
+    const role=RUNNERS.some(r=>r.name===p.name)?(DROPPED[p.name]?'Runner · out':'Runner'):'Crew';
+    return `<div class="contact-row${p.name===ME?' is-me':''}">
+      <div class="av av-sm" style="border-color:${p.color};color:${p.color}">${esc(p.init)}</div>
+      <div class="contact-name"><b>${esc(p.fullName)}</b><span>${role}${ph&&!editing?' · '+esc(ph):''}</span></div>
+      ${editing
+        ? `<input type="tel" id="phone-input" value="${esc(ph)}" placeholder="Phone" autocomplete="tel" onkeydown="if(event.key==='Enter')savePhone('${esc(p.name)}')">
+           <button class="btn-ghost accent" onclick="savePhone('${esc(p.name)}')">SAVE</button>`
+        : `${ph?`<a class="btn-ghost accent" href="${telHref(ph)}">CALL</a><a class="btn-ghost accent" href="${smsHref([ph])}">TEXT</a>`:''}
+           <button class="btn-ghost icon-btn" onclick="phoneEditCode='${esc(p.name)}';renderResources();setTimeout(()=>{const i=document.getElementById('phone-input');if(i)i.focus();},30)" aria-label="Edit phone">${ph?'✎':'+ PHONE'}</button>`}
+    </div>`;
+  }).join('')}</div>`;
+
+  // ---- the rest ----
+  RES_CATS.slice(1).forEach(c=>{ html+=resCategoryHTML(c); });
+
+  el.innerHTML=html;
+  if(resFormOpen) renderResForm();
+}
+function resCategoryHTML(c){
+  let html='';
+  {
+    const items=resources.filter(r=>(resCat(r.category).key)===c.key)
+      .sort((a,b)=>((a.mile==null?1e9:a.mile)-(b.mile==null?1e9:b.mile)) || String(a.name).localeCompare(String(b.name)));
+    html+=`<div class="res-head"><div class="section-head" style="margin-bottom:0">${c.title}</div>
+      <button class="btn-ghost accent" onclick="openResForm(null,'${c.key}')">+ ADD</button></div>`;
+    if(c.key==='Emergency'){
+      html+=`<div class="res-card res-911"><div class="res-top"><div><div class="res-name">911</div>
+        <div class="res-sub">Call first in any emergency. If a call won’t connect, try texting 911 — it works across much of California and Nevada.</div></div>
+        <a class="btn res-call" href="tel:911">CALL 911</a></div></div>`;
+    }
+    if(!items.length){ html+=`<div class="res-empty">Nothing here yet.</div>`; return html; }
+    html+=items.map(r=>resCardHTML(r, c)).join('');
+  }
+  return html;
+}
+function resCardHTML(r, c){
+  const col=readableColor(c.color);
+  const isLL=LATLNG_RE.test(r.location||'');
+  return `<div class="res-card" style="border-left-color:${col}">
+    <div class="res-top">
+      <div style="min-width:0">
+        <div class="res-name">${esc(r.name)}</div>
+        <div class="res-sub">${r.mile!=null&&!isNaN(r.mile)?`MILE ${Math.round(r.mile*10)/10} `:''}${aheadLabel(r.mile)}</div>
+      </div>
+    </div>
+    <div class="logi-meta">
+      ${r.location?`<div><b>${isLL?'COORDS':'WHERE'}</b>${esc(r.location)}${isLL?` <button class="conf-btn" data-v="${esc(r.location)}" onclick="copyConf(this)">COPY</button>`:''}</div>`:''}
+      ${r.phone?`<div><b>PHONE</b>${esc(r.phone)}</div>`:''}
+      ${r.hours?`<div><b>HOURS</b>${esc(r.hours)}</div>`:''}
+    </div>
+    ${r.notes?`<div class="logi-notes">${esc(r.notes)}</div>`:''}
+    <div class="logi-actions">
+      ${r.location?`<a class="btn-ghost accent" href="${mapsUrl(r.location)}" target="_blank" rel="noopener">NAVIGATE ↗</a>`:''}
+      ${r.phone?`<a class="btn-ghost accent" href="${telHref(r.phone)}">CALL</a>`:''}
+      ${/^https?:\/\//i.test(r.link||'')?`<a class="btn-ghost accent" href="${esc(r.link)}" target="_blank" rel="noopener">LINK ↗</a>`:''}
+      <button class="btn-ghost" style="border-color:var(--line-strong)" onclick="openResForm('${esc(r.id)}')">EDIT</button>
+      <button class="btn-ghost" onclick="deleteResource('${esc(r.id)}')">DELETE</button>
+    </div>
+  </div>`;
+}
+function openResForm(id, cat){
+  resEditingId=id||null; resNewCat=cat||null; resFormOpen=true;
+  renderResForm();
+  const w=document.getElementById('res-form-wrap'); if(w) w.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeResForm(){ resFormOpen=false; resEditingId=null; resNewCat=null; const w=document.getElementById('res-form-wrap'); if(w) w.innerHTML=''; }
+function renderResForm(){
+  const w=document.getElementById('res-form-wrap'); if(!w) return;
+  const r=resEditingId ? (resources.find(x=>x.id===resEditingId)||{}) : { category: resNewCat||'Coordinates' };
+  const c=resCat(r.category);
+  const v=k=>esc(r[k]==null?'':r[k]);
+  w.innerHTML=`<div class="form-card logi-form">
+    <div class="form-label" style="font-size:11px;margin-bottom:14px">${resEditingId?'EDIT':'ADD TO '+c.title.toUpperCase()}</div>
+    <div class="form-row two">
+      <div><div class="form-label">Type</div><select id="rf-cat">${RES_CATS.map(x=>`<option value="${x.key}"${x.key===c.key?' selected':''}>${x.title}</option>`).join('')}</select></div>
+      <div><div class="form-label">Name</div><input type="text" id="rf-name" value="${v('name')}" placeholder="${esc(c.ph)}"></div>
+    </div>
+    <div class="form-row two">
+      <div><div class="form-label">Mile marker</div><input type="number" id="rf-mile" value="${v('mile')}" step="0.1" inputmode="decimal" placeholder="e.g. 142.5"></div>
+      <div><div class="form-label">Address or lat, long</div><input type="text" id="rf-loc" value="${v('location')}" placeholder="34.8958, -117.0173"></div>
+    </div>
+    <div class="form-row two">
+      <div><div class="form-label">Phone</div><input type="tel" id="rf-phone" value="${v('phone')}"></div>
+      <div><div class="form-label">Hours</div><input type="text" id="rf-hours" value="${v('hours')}" placeholder="24 hrs"></div>
+    </div>
+    <div class="form-row one"><div><div class="form-label">Link</div><input type="url" id="rf-link" value="${v('link')}" placeholder="https://"></div></div>
+    <div class="form-row one"><div><div class="form-label">Notes</div><textarea id="rf-notes" placeholder="Parking, gate codes, which side of the road…">${v('notes')}</textarea></div></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="rf-save" onclick="saveResource()">${resEditingId?'SAVE CHANGES':'ADD'}</button>
+      <button class="btn-ghost" onclick="closeResForm()">CANCEL</button>
+      <span id="rf-msg" class="fix-note"></span>
+    </div>
+  </div>`;
+}
+async function saveResource(){
+  const g=id=>document.getElementById(id);
+  const item={ id:resEditingId||'', category:g('rf-cat').value, name:g('rf-name').value.trim(), mile:g('rf-mile').value,
+    location:g('rf-loc').value.trim(), phone:g('rf-phone').value.trim(), hours:g('rf-hours').value.trim(),
+    link:g('rf-link').value.trim(), notes:g('rf-notes').value.trim() };
+  if(!item.name){ g('rf-msg').textContent='← add a name'; g('rf-msg').style.color='var(--red)'; return; }
+  g('rf-save').disabled=true;
+  if(await postNow({action:'saveResource', item})){ closeResForm(); renderResources(); }
+  else g('rf-save').disabled=false;
+}
+async function deleteResource(id){
+  const r=resources.find(x=>x.id===id); if(!r) return;
+  if(!confirm('Delete "'+r.name+'" for everyone?')) return;
+  if(await postNow({action:'deleteResource', id})) renderResources();
+}
+async function savePhone(code){
+  const v=(document.getElementById('phone-input').value||'').trim();
+  phoneEditCode=null;
+  const prev=phones[code];
+  if(v) phones[code]=v; else delete phones[code];
+  renderResources();
+  if(!await postNow({action:'setPhone', code, phone:v})){ if(prev) phones[code]=prev; else delete phones[code]; renderResources(); }
+}
+async function editMasterLink(){
+  const cur=(CACHE.config&&CACHE.config.MasterCoordsURL)||'';
+  const v=prompt('Paste the link to the master coordinates Google Sheet:', cur);
+  if(v===null) return;
+  const url=v.trim();
+  if(url && !/^https?:\/\//i.test(url)){ toast('That doesn’t look like a link — it should start with https://'); return; }
+  if(await postNow({action:'setSetting', name:'MasterCoordsURL', value:url})) renderResources();
+}
+
 // ============ END LOGISTICS ============
 
 // ============ BOOT ============
